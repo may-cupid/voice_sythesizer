@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+"""
+Cepstral Analysis Program
+Converts MATLAB/Jupyter code to standalone Python executable
+"""
+
+import numpy as np
+from scipy.signal import windows
+from scipy.io import wavfile
+import matplotlib.pyplot as plt
+
+def cepstral_analysis(speech, fs, f0=200):
+    """
+    Perform cepstral analysis on speech signal
+    
+    Parameters:
+    -----------
+    speech : numpy array
+        Speech signal to analyze
+    fs : int
+        Sampling rate in Hz
+    f0 : int
+        Fundamental frequency in Hz (default: 200)
+    
+    Returns:
+    --------
+    dict : Dictionary containing analysis results
+    """
+    
+    # Frame size = 40 ms
+    Nframe = 2 ** int(np.ceil(np.log2(fs/25)))  # nextpow2 equivalent
+    print(f"Frame size: {Nframe} samples ({Nframe/fs*1000:.1f} ms)")
+    
+    # Hamming window
+    w = windows.hamming(Nframe, sym=False)
+    winspeech = w * speech[:Nframe]
+    
+    # Zero-padding (factor of 4)
+    Nfft = 4 * Nframe
+    print(f"FFT size: {Nfft}")
+    
+    # FFT and dB spectrum
+    sspec = np.fft.fft(winspeech, Nfft)
+    dbsspecfull = 20 * np.log10(np.abs(sspec) + 1e-10)  # Add small epsilon to avoid log(0)
+    
+    # Real cepstrum
+    rcep = np.fft.ifft(dbsspecfull)
+    rcep = np.real(rcep)  # Eliminate round-off noise in imag part
+    
+    # Fundamental period
+    period = round(fs / f0)
+    print(f"Period: {period} samples")
+    
+    # Aliasing check
+    nspec = Nfft // 2 + 1
+    aliasing = np.linalg.norm(rcep[nspec-10:nspec+10]) / np.linalg.norm(rcep)
+    print(f"Aliasing: {aliasing:.4f}")
+    
+    # Create window for cepstral liftering (almost 1 period left and right)
+    nw = 2 * period - 4
+    if nw // 2 == nw / 2:  # Check if even
+        nw = nw - 1  # Make it odd
+    
+    # Rectangular window
+    w_boxcar = np.ones(nw)
+    
+    # Zero-phase version of the window
+    wzp = np.zeros(Nfft)
+    mid = (nw + 1) // 2
+    # Place window centered at zero
+    wzp[:mid] = w_boxcar[mid-1:]  # Right half (positive time)
+    wzp[Nfft-(nw-mid):] = w_boxcar[:mid-1]  # Left half (negative time)
+    
+    # Apply liftering (window the cepstrum)
+    wrcep = wzp * rcep
+    
+    # Spectral envelope (inverse FFT of windowed cepstrum)
+    rcepenv = np.fft.fft(wrcep)
+    rcepenvp = np.real(rcepenv[:nspec])  # Should be real
+    rcepenvp = rcepenvp - np.mean(rcepenvp)  # Normalize to zero mean
+    
+    # Store results in a dictionary
+    results = {
+        'Nframe': Nframe,
+        'Nfft': Nfft,
+        'nspec': nspec,
+        'winspeech': winspeech,
+        'sspec': sspec,
+        'dbsspecfull': dbsspecfull,
+        'rcep': rcep,
+        'period': period,
+        'aliasing': aliasing,
+        'nw': nw,
+        'wzp': wzp,
+        'wrcep': wrcep,
+        'rcepenv': rcepenv,
+        'rcepenvp': rcepenvp
+    }
+    
+    return results
+
+def plot_results(results, fs):
+    """
+    Visualize the cepstral analysis results
+    
+    Parameters:
+    -----------
+    results : dict
+        Results dictionary from cepstral_analysis()
+    fs : int
+        Sampling rate in Hz
+    """
+    
+    fig, axes = plt.subplots(3, 2, figsize=(12, 10))
+    
+    # 1. Windowed speech
+    axes[0, 0].plot(results['winspeech'])
+    axes[0, 0].set_title('Windowed Speech (40 ms)')
+    axes[0, 0].set_xlabel('Sample')
+    axes[0, 0].set_ylabel('Amplitude')
+    axes[0, 0].grid(True)
+    
+    # 2. Magnitude spectrum (dB)
+    freq_axis = np.fft.fftfreq(results['Nfft'], 1/fs)[:results['nspec']]
+    axes[0, 1].plot(freq_axis, results['dbsspecfull'][:results['nspec']])
+    axes[0, 1].set_title('Log Magnitude Spectrum')
+    axes[0, 1].set_xlabel('Frequency (Hz)')
+    axes[0, 1].set_ylabel('Magnitude (dB)')
+    axes[0, 1].grid(True)
+    
+    # 3. Real cepstrum
+    quefrency_axis = np.arange(results['Nfft']) / fs * 1000  # in ms
+    axes[1, 0].plot(quefrency_axis, results['rcep'])
+    axes[1, 0].set_title('Real Cepstrum')
+    axes[1, 0].set_xlabel('Quefrency (ms)')
+    axes[1, 0].set_ylabel('Amplitude')
+    axes[1, 0].grid(True)
+    axes[1, 0].axvline(results['period']/fs*1000, color='r', linestyle='--', 
+                      label=f'Pitch period ({results["period"]/fs*1000:.2f} ms)')
+    axes[1, 0].legend()
+    
+    # 4. Liftering window (zero-phase)
+    axes[1, 1].plot(quefrency_axis, results['wzp'])
+    axes[1, 1].set_title('Liftering Window (Zero-Phase)')
+    axes[1, 1].set_xlabel('Quefrency (ms)')
+    axes[1, 1].set_ylabel('Amplitude')
+    axes[1, 1].grid(True)
+    
+    # 5. Windowed cepstrum
+    axes[2, 0].plot(quefrency_axis, results['wrcep'])
+    axes[2, 0].set_title('Windowed Cepstrum')
+    axes[2, 0].set_xlabel('Quefrency (ms)')
+    axes[2, 0].set_ylabel('Amplitude')
+    axes[2, 0].grid(True)
+    
+    # 6. Spectral envelope
+    axes[2, 1].plot(freq_axis, results['rcepenvp'])
+    axes[2, 1].set_title('Spectral Envelope')
+    axes[2, 1].set_xlabel('Frequency (Hz)')
+    axes[2, 1].set_ylabel('Amplitude (dB)')
+    axes[2, 1].grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+def main():
+    """Main function to run the cepstral analysis"""
+    
+    print("Cepstral Analysis Program")
+    print("=" * 35)
+    
+    # Load the speech file generated from the previous synthesis
+    try:
+        fs, speech = wavfile.read('speech_ahh.wav')
+        print(f"Loaded speech_ahh.wav: {len(speech)} samples at {fs} Hz")
+        
+        # Normalize to float if needed
+        if speech.dtype == np.int16:
+            speech = speech.astype(np.float32) / 32767.0
+        
+        # Analyze the first 40 ms
+        f0 = 200  # Fundamental frequency
+        results = cepstral_analysis(speech, fs, f0)
+        
+        # Print summary
+        print("\n" + "=" * 35)
+        print("Analysis Summary:")
+        print(f"Frame size: {results['Nframe']} samples")
+        print(f"FFT size: {results['Nfft']}")
+        print(f"Pitch period: {results['period']} samples ({results['period']/fs*1000:.2f} ms)")
+        print(f"Window length (lifter): {results['nw']} samples")
+        print(f"Aliasing measure: {results['aliasing']:.4f}")
+        
+        # Plot results
+        plot_results(results, fs)
+        
+        # Optionally save the spectral envelope
+        np.savetxt('spectral_envelope.txt', 
+                   np.column_stack([np.fft.fftfreq(results['Nfft'], 1/fs)[:results['nspec']], 
+                                   results['rcepenvp']]),
+                   header='Frequency(Hz)\tAmplitude(dB)')
+        print("\nSpectral envelope saved to 'spectral_envelope.txt'")
+        
+    except FileNotFoundError:
+        print("Error: speech_ahh.wav not found.")
+        print("Please run the formant_synthesis.py first to generate the speech file.")
+        print("\nOr, you can generate a synthetic signal for testing:")
+        
+        # Generate a simple synthetic signal for demonstration
+        fs = 8192
+        t = np.linspace(0, 0.04, int(0.04 * fs))  # 40 ms
+        # Create a simple harmonic signal
+        f0 = 200
+        speech = np.zeros(len(t))
+        for i in range(1, 11):
+            speech += np.sin(2 * np.pi * i * f0 * t) / i
+        
+        print("Using synthetic signal for demonstration...")
+        results = cepstral_analysis(speech, fs, f0)
+        plot_results(results, fs)
+
+if __name__ == "__main__":
+    main()
