@@ -13,8 +13,7 @@ class PlayerManager:
         pygame.mixer.init()
         
         # Define music files
-        self.title_music = "music/title_music.wav"
-        self.main_music = "music/main_music.wav"
+        self.played_speech = speech
         
         # Track current playing music and state
         self.current_music = None
@@ -31,9 +30,9 @@ class PlayerManager:
         
         # Change music based on game state
         if game_state == "start":
-            self.play_music(self.title_music)
-        elif game_state == "dress_up":
-            self.play_music(self.main_music)
+            self.is_muted = True
+        elif game_state == "player_open":
+            self.play_music(speech)
     
     def play_music(self, music_file):
         """Play a music file and loop it"""

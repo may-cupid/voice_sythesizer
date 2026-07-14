@@ -6,11 +6,14 @@ import sounddevice as sd
 import time
 from scipy import signal
 
-from parameters import VowelParams, f0, formant_list, band_list, FormantController
+from parameters import VowelParams, f0, FormantController
 
 
 def synthesize_speech():
     """Synthesize speech using formant filtering of a buzz source"""
+
+    fc = FormantController()
+    fc.load_preset("male", "A")
 
     formant_list, band_list = FormantController.export()
 
