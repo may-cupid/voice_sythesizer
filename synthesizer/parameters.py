@@ -141,8 +141,10 @@ class FormantController:
             [F, B]  where F = [F1, F2, F3] and B = [B1, B2, B3]
         """
 
+current_params = FormantController("male","A")
 
 
+print(current_params)
 
 
 
