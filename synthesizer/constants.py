@@ -6,7 +6,18 @@ SCREEN_WIDTH = 900
 #colours
 HEADER_COLOUR = (255, 175, 204)
 TEXT_COLOUR = (255, 255, 255)
+
 BUTTON_COLOUR = (189, 224, 254)
 BUTTON_HOVER_COLOUR = (162, 210, 255)
+
 BORDER_COLOUR = (162, 210, 255)
 UI_COLOUR = (255, 200, 221)
+
+BG_COLOUR = (255, 255, 255)
+
+INFO = {
+        
+        MAIN_INFO : "",
+        EFFECT_INFO : "",
+        TRAIT_INFO : ""
+        }
