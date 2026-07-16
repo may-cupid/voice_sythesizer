@@ -6,16 +6,16 @@ import sounddevice as sd
 import time
 from scipy import signal
 
-from parameters import VowelParams, f0, FormantController
+from parameters import f0, FormantController
 
 
 def synthesize_speech():
     """Synthesize speech using formant filtering of a buzz source"""
 
     fc = FormantController()
-    fc.load_preset("male", "A")
 
-    formant_list, band_list = FormantController.export()
+    formant_list = fc.load_preset("male", "A")[0]
+    band_list = fc.load_preset("male", "A")[1]
 
     # Formant frequencies in Hz
     F = np.array(formant_list)
@@ -67,10 +67,13 @@ def synthesize_speech():
     speech = speech / np.max(np.abs(speech))
 
 
-    
+    """
     print("Done!")
     
     print("Playing speech (ahh)...")
+
+
+    """
     sd.play(speech, fs)
     time.sleep(1)  # Wait for playback to finish
 
