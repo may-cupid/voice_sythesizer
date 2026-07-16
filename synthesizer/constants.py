@@ -15,9 +15,8 @@ UI_COLOUR = (255, 200, 221)
 
 BG_COLOUR = (255, 255, 255)
 
-INFO = {
-        
-        MAIN_INFO : "",
-        EFFECT_INFO : "",
-        TRAIT_INFO : ""
+INFO = {  
+        "MAIN_INFO" : {"info_title": "dfs", "info_content": ""},
+        "EFFECT_INFO" : {"info_title": "dfs", "info_content": ""},
+        "TRAIT_INFO" : {"info_title": "dfs", "info_content": ""}
         }

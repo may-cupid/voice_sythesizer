@@ -11,8 +11,8 @@ import struct
 import math
 from constants import SCREEN_HEIGHT,SCREEN_WIDTH, HEADER_COLOUR,TEXT_COLOUR, BUTTON_COLOUR, BUTTON_HOVER_COLOUR, BORDER_COLOUR, UI_COLOUR, BG_COLOUR, INFO
 
-from ui_elements import Button
-
+from ui_elements import Button, InfoPanel
+from game_state import GameState
 
 
 import synthesizer as synth

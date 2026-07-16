@@ -205,3 +205,98 @@ class Dropdown:
         if self.dropdown_area:
             return self.dropdown_area.collidepoint(mouse_pos)
         return self.rect.collidepoint(mouse_pos)
+    
+class InfoPanel:
+    """Info panel that displays game information."""
+    def __init__(self, title, text_content, images=None):
+        self.title = title
+        self.text_content = text_content
+        self.images = images or []
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        self.panel_rect = pygame.Rect(100, 80, screen_width - 200, screen_height - 160)
+        self.close_button = Button(self.panel_rect.right - 40, self.panel_rect.top + 10, 30, 30, "X", self.hide)
+        self.scroll_offset = 0
+        self.max_scroll = 0  # Will be calculated during draw
+        self.visible = False
+        
+    def draw(self, screen):
+        """Draw the info panel on the screen."""
+        # Draw panel background
+        pygame.draw.rect(screen, UI_COLOUR, self.panel_rect, border_radius=10)
+        pygame.draw.rect(screen, BORDER_COLOUR, self.panel_rect, width=2, border_radius=10)
+        
+        # Draw title
+        title_surf = font.render(self.title, True, HEADER_COLOUR)
+        title_rect = title_surf.get_rect(midtop=(self.panel_rect.centerx, self.panel_rect.top + 20))
+        screen.blit(title_surf, title_rect)
+        
+        # Create a clipping rect for scrollable content
+        content_rect = pygame.Rect(
+            self.panel_rect.left + 20,
+            self.panel_rect.top + 60,
+            self.panel_rect.width - 40,
+            self.panel_rect.height - 80
+        )
+        
+        # Set up scrolling
+        total_height = 0
+        line_height = 24
+        
+        # Draw text content
+        y_offset = content_rect.top - self.scroll_offset
+        for line in self.text_content:
+            if line:  # If not an empty line
+                text_surf = info_font.render(line, True, TEXT_COLOUR)
+                text_rect = text_surf.get_rect(topleft=(content_rect.left, y_offset))
+                
+                # Only draw if within content_rect
+                if content_rect.top <= y_offset <= content_rect.bottom - line_height:
+                    screen.blit(text_surf, text_rect)
+            
+            y_offset += line_height
+            total_height += line_height
+        
+        # Calculate max scroll
+        self.max_scroll = max(0, total_height - content_rect.height)
+        
+        # Draw scroll indicators if needed
+        if self.max_scroll > 0:
+            if self.scroll_offset > 0:  # Can scroll up
+                pygame.draw.polygon(screen, BORDER_COLOUR, 
+                                  [(content_rect.centerx - 10, content_rect.top + 10), 
+                                   (content_rect.centerx + 10, content_rect.top + 10), 
+                                   (content_rect.centerx, content_rect.top + 5)])
+            
+            if self.scroll_offset < self.max_scroll:  # Can scroll down
+                pygame.draw.polygon(screen, BORDER_COLOUR, 
+                                  [(content_rect.centerx - 10, content_rect.bottom - 10), 
+                                   (content_rect.centerx + 10, content_rect.bottom - 10), 
+                                   (content_rect.centerx, content_rect.bottom - 5)])
+        
+        # Draw close button
+        self.close_button.draw(screen)
+    
+    def update(self, mouse_pos, mouse_clicked, mouse_wheel=0):
+        """Update info panel and handle scrolling and closing."""
+        # Handle scrolling
+        if mouse_wheel != 0:
+            self.scroll_offset = max(0, min(self.scroll_offset - mouse_wheel * 20, self.max_scroll))
+        
+        # Update close button
+        if self.close_button.update(mouse_pos, mouse_clicked):
+            self.hide()
+            return True
+        
+        return False
+    
+    def show(self):
+        """Show the info panel."""
+        self.visible = True
+    
+    def hide(self):
+        """Hide the info panel."""
+        self.visible = False
+        
+    def toggle(self):
+        """Toggle the visibility of the info panel."""
+        self.visible = not self.visible
