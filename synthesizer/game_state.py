@@ -3,6 +3,7 @@ sys.dont_write_bytecode = True
 import pygame
 from ui_elements import Button, Dropdown
 from player import PlayerManager
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH
 
 player_manager = PlayerManager()
 
@@ -19,14 +20,13 @@ class GameState:
         # Create buttons
         
         # Create top-right buttons
-        self.info_button = Button(screen_width - 60, 20, 40, 40, "i", self.info_panel.toggle)
-        self.bg_button = Button(screen_width - 60, 70, 40, 40, "bg", self.change_background_callback)
-        self.mute_button = Button(screen_width - 60, 120, 40, 40, "m", music_manager.toggle_mute)
+        self.info_button = Button(SCREEN_WIDTH - 60, 20, 40, 40, "i", self.info_panel.toggle)
+        self.mute_button = Button(SCREEN_WIDTH - 60, 120, 40, 40, "m", player_manager.toggle_mute)
         
         # Background management
         self.backgrounds = []
         self.current_background_index = 0
-        self.current_background = None
+        self.current_background = pygame.Rect(0, 0, 0, SCREEN_HEIGHT)
         
  
     def set_state(self, new_state):
@@ -34,7 +34,7 @@ class GameState:
         self.state = new_state
         self.active_dropdown = None
         
-        # Initialize dropdowns when entering dress_up state
+        # Initialize dropdowns when entering config state
         
             # Clear previous dropdowns
         self.dropdowns = []

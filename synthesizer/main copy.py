@@ -134,11 +134,71 @@ def main():
         
         # Draw background
         if game_state.current_background:
-            
+            background = pygame.Rect(0, 0, 0, SCREEN_HEIGHT)
             screen.blit(game_state.current_background, (0, 0))
             pygame.draw.rect(screen, BG_COLOUR,)
         
+        # Check if mouse is over any dropdown menu or info panel
+        mouse_over_dropdown = game_state.is_position_over_any_dropdown(mouse_pos)
+        
+        # Handle game states
+       
+        if game_state.state == "config":
 
+            # Draw UI panel
+            ui_panel = pygame.Rect(20, 20, 210, SCREEN_HEIGHT - 40)
+            pygame.draw.rect(screen, UI_COLOUR, ui_panel, border_radius=10)
+            pygame.draw.rect(screen, BORDER_COLOUR, ui_panel, width=2, border_radius=10)
+            
+            # Draw title
+            title = render("Voice Synthesizer", False, TEXT_COLOUR)
+            title_rect = title.get_rect(left=(ui_panel.centerx, 30))
+            screen.blit(title, title_rect)
+
+            
+            # Handle dropdowns
+            if mouse_clicked and game_state.active_dropdown:
+                # Wenn außerhalb aller Dropdowns geklickt wird, schließe das aktive
+                if not game_state.is_position_over_any_dropdown(mouse_pos):
+                    game_state.active_dropdown.is_open = False
+                    game_state.active_dropdown = None
+            
+            # UI-Buttons sollten deaktiviert sein, wenn ein Dropdown aktiv ist
+            button_blocked = mouse_over_dropdown or info_panel.visible
+            
+            # Update randomize button position and draw it
+            
+            # Draw info and background buttons
+            game_state.info_button.update(mouse_pos, mouse_clicked and not button_blocked)
+            game_state.info_button.draw(screen)
+            
+            game_state.mute_button.update(mouse_pos, mouse_clicked and not button_blocked)
+            game_state.mute_button.draw(screen)
+            
+            # Update and draw dropdown menus
+            for dropdown in game_state.dropdowns:
+                # Nur update ermöglichen, wenn kein anderes Dropdown geöffnet ist
+                # oder es sich um das aktuell geöffnete Dropdown handelt
+                can_update = not game_state.active_dropdown or dropdown == game_state.active_dropdown
+                
+                if dropdown.update(mouse_pos, mouse_clicked and can_update, mouse_wheel, character.set_feature):
+                    if dropdown.is_open:
+                        if game_state.active_dropdown and game_state.active_dropdown != dropdown:
+                            game_state.active_dropdown.is_open = False
+                        game_state.active_dropdown = dropdown
+            
+            # Draw all inactive dropdowns first, then active one
+            for dropdown in game_state.dropdowns:
+                if dropdown != game_state.active_dropdown:
+                    dropdown.draw(screen)
+            
+            if game_state.active_dropdown:
+                game_state.active_dropdown.draw(screen)
+        
+        # Draw info panel if activated (draw last to appear on top)
+        if info_panel.visible:
+            info_panel.update(mouse_pos, mouse_clicked, mouse_wheel)
+            info_panel.draw(screen)
         
         pygame.display.update()
         clock.tick(60)
