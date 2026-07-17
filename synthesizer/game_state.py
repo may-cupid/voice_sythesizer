@@ -9,11 +9,11 @@ player_manager = PlayerManager()
 
 class GameState:
     
-    def __init__(self, assets, info_panel, character):
+    def __init__(self, assets, info_panel):
         self.state = "start"
         self.assets = assets
         self.info_panel = info_panel
-        self.character = character
+
         self.active_dropdown = None
         self.dropdowns = []
         

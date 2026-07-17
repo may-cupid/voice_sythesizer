@@ -16,7 +16,7 @@ from game_state import GameState
 
 
 import synthesizer as synth
-import parameters as param
+import parameters as p
 
 
 """
@@ -96,18 +96,19 @@ def vibrato(wf):
 
 # Initialize pygame
 pygame.init()
-screen = pygame.display.set_mode((c.SCREEN_WIDTH, c.SCREEN_HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Dress-Up")
+
 clock = pygame.time.Clock()
-music_manager = MusicManager()
+#music_manager = MusicManager()
 
 
 # Create info panel
-info_panel = InfoPanel(INFO_CONTENT["title"], INFO_CONTENT["text"])
+#info_panel = InfoPanel(INFO_CONTENT["title"], INFO_CONTENT["text"])
 
 # Create game state manager
-game_state = GameState(assets, info_panel, character)
-game_state.set_backgrounds(backgrounds)
+game_state = GameState(p.PRESETS, info_panel, character)
+game_state.set_backgrounds()
 
 
 def main():

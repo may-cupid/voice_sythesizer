@@ -1,3 +1,8 @@
+import sys
+
+sys.dont_write_bytecode = True
+
+import pygame
 
 #screen
 SCREEN_HEIGHT = 1200
@@ -14,6 +19,10 @@ BORDER_COLOUR = (162, 210, 255)
 UI_COLOUR = (255, 200, 221)
 
 BG_COLOUR = (255, 255, 255)
+
+FONT = pygame.font.Font("arial", "36")
+SMALL_FONT = pygame.font.Font("arial", "20")
+
 
 INFO = {  
         "MAIN_INFO" : {"info_title": "dfs", "info_content": ""},
