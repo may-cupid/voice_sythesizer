@@ -96,12 +96,11 @@ def vibrato(wf):
 
 # Initialize pygame
 pygame.init()
-pygame.sysfont.initsysfonts
+
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Voice Synthesizer")
 
-FONT = pygame.font.SysFont("cambria", 50)
-SMALL_FONT = pygame.font.SysFont("cambria", 25)
+
 
 clock = pygame.time.Clock()
 #music_manager = MusicManager()
