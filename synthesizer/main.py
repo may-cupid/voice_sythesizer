@@ -9,7 +9,7 @@ from scipy import signal
 import wave
 import struct
 import math
-from constants import SCREEN_HEIGHT,SCREEN_WIDTH, HEADER_COLOUR,TEXT_COLOUR, BUTTON_COLOUR, BUTTON_HOVER_COLOUR, BORDER_COLOUR, UI_COLOUR, BG_COLOUR, INFO
+from constants import SCREEN_HEIGHT,SCREEN_WIDTH
 
 from ui_elements import Button, InfoPanel
 from game_state import GameState
@@ -96,8 +96,12 @@ def vibrato(wf):
 
 # Initialize pygame
 pygame.init()
+pygame.sysfont.initsysfonts
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Dress-Up")
+pygame.display.set_caption("Voice Synthesizer")
+
+FONT = pygame.font.SysFont("cambria", 50)
+SMALL_FONT = pygame.font.SysFont("cambria", 25)
 
 clock = pygame.time.Clock()
 #music_manager = MusicManager()
@@ -106,29 +110,45 @@ clock = pygame.time.Clock()
 # Create info panel
 #info_panel = InfoPanel(INFO_CONTENT["title"], INFO_CONTENT["text"])
 
-# Create game state manager
-game_state = GameState(p.PRESETS, info_panel, character)
-game_state.set_backgrounds()
+VOWEL_BUTTON = Button(0,0,100,50, "Select Vowel")
+TRAIT_BUTTON = Button(0,0,100,50, "Trait")
+PITCH_BUTTON = Button(0,0,100,50, "Set Pitch")
+EFFECTS_BUTTON = Button(0,0,100,50, "Effects")
+ADVANCED_BUTTON = Button(0,0,100,50, "Advanced Options")
+PLAYER_BUTTON = Button(0,0,100,50, "Play")
+INFO_BUTTON = Button(0,0,100,50, "Info")
+
+BACK_BUTTON = Button(0,0,100,50, "Back")
 
 def player():
     while True:
         pygame.display.set_caption("Player")
 
+        screen.fill("black")
+
 def vowel_selection():
     while True:
         pygame.display.set_caption("Vowel Selection")
+
+        screen.fill("blue")
 
 def effects():
     while True:
         pygame.display.set_caption("Effects")
 
+        screen.fill("green")
+
 def advanced():
     while True:
         pygame.display.set_caption("Advanced Options")
 
+        screen.fill("red")
+
 def info():
     while True:
         pygame.display.set_caption("Information")
+
+        screen.fill("yellow")
 
 
 def main():
@@ -144,34 +164,57 @@ def main():
         TITLE_TEXT = pygame.Font.render("Voice Synthesizer", True, "000000")
         TITLE_RECT = TITLE_TEXT.get_rect(left=(640, 100))
 
-        VOWEL_BUTTON = Button()
-        TRAIT_BUTTON = Button()
-        PITCH_BUTTON = Button()
-        EFFECTS_BUTTON = Button()
-        ADVANCED_BUTTON = Button()
-        PLAYER_BUTTON = Button()
-        INFO_BUTTON = Button()
-
-
         screen.blit(TITLE_TEXT,TITLE_RECT)
 
+        VOWEL_BUTTON.draw(screen)
+        TRAIT_BUTTON.draw(screen)
+        PITCH_BUTTON.draw(screen)
+        EFFECTS_BUTTON.draw(screen)
+        ADVANCED_BUTTON.draw(screen)
+        PLAYER_BUTTON.draw(screen)
+        INFO_BUTTON.draw(screen)
+        
         # Process events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
-                    mouse_clicked = True
+                    MENU_MOUSE_CLICKED = True
                 elif event.button == 4:  # Mouse wheel up
                     MENU_MOUSE_WHEEL = 1
                 elif event.button == 5:  # Mouse wheel down
                     MENU_MOUSE_WHEEL = -1
-        
 
-        
+                elif VOWEL_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """Open the vowel selector"""
+                    vowel_selection()
 
-        
+                elif TRAIT_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """select male/female"""
+
+                elif PITCH_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """Open the text input to input a pitch in Hz"""
+
+                elif EFFECTS_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """Open the Effects window"""
+                    effects()
+
+                elif ADVANCED_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """open the advanced settings (keyboard input for F1-3 and Bandwidth)"""
+                    advanced()
+
+                elif PLAYER_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """open the player"""
+                    player()
+
+                elif INFO_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                    """open the info panel"""
+                    info()
+                    
+                    
         pygame.display.update()
         clock.tick(60)
 

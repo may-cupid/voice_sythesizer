@@ -2,8 +2,6 @@ import sys
 
 sys.dont_write_bytecode = True
 
-import pygame
-
 #screen
 SCREEN_HEIGHT = 1200
 SCREEN_WIDTH = 900
@@ -19,9 +17,6 @@ BORDER_COLOUR = (162, 210, 255)
 UI_COLOUR = (255, 200, 221)
 
 BG_COLOUR = (255, 255, 255)
-
-FONT = pygame.font.SysFont("cambria", "50")
-SMALL_FONT = pygame.font.SysFont("cambria", "25")
 
 
 INFO = {  

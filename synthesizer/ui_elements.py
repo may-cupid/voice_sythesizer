@@ -11,7 +11,7 @@ class Button:
         self.x = x 
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
-        
+
         self.callback = callback
         self.hovered = False
         self.icon = icon
@@ -26,7 +26,7 @@ class Button:
         if self.icon:
             screen.blit(self.icon, self.icon.get_rect(center=self.rect.center))
         else:
-            text_surf = small_font.render(self.text, True, TEXT_COLOUR)
+            text_surf = SMALL_FONT.render(self.text, True, TEXT_COLOUR)
             text_rect = text_surf.get_rect(center=self.rect.center)
             screen.blit(text_surf, text_rect)
         
