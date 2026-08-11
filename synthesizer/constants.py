@@ -20,8 +20,8 @@ UI_COLOUR = (255, 200, 221)
 
 BG_COLOUR = (255, 255, 255)
 
-FONT = pygame.font.Font("arial", "36")
-SMALL_FONT = pygame.font.Font("arial", "20")
+FONT = pygame.font.SysFont("cambria", "50")
+SMALL_FONT = pygame.font.SysFont("cambria", "25")
 
 
 INFO = {  

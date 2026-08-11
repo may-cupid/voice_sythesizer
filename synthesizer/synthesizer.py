@@ -42,6 +42,7 @@ def synthesize_speech():
     # Fundamental frequency in Hz
     #f0 = f0
     w0T = 2 * np.pi * f0 / fs
+
     
     # Number of harmonics
     nharm = int(np.floor((fs/2) / f0))
@@ -63,9 +64,21 @@ def synthesize_speech():
   
     speech = signal.lfilter(B_coeff, A, sig)
     
+    #vibrato
+
+    """
+    speech = 
+    Fs 
+    t = np.arange(0,0.2,1/Fs) # Time vector
+
+    f0_1 = F # Signal frequency-1 to construct message signal
+    fm2 = 45 # Signal frequency-2 to construct message signal
+    b = 1 # modulation index
+
+
     # Normalize speech for playback
     speech = speech / np.max(np.abs(speech))
-
+    """
 
     """
     print("Done!")

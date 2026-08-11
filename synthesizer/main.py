@@ -110,15 +110,50 @@ clock = pygame.time.Clock()
 game_state = GameState(p.PRESETS, info_panel, character)
 game_state.set_backgrounds()
 
+def player():
+    while True:
+        pygame.display.set_caption("Player")
+
+def vowel_selection():
+    while True:
+        pygame.display.set_caption("Vowel Selection")
+
+def effects():
+    while True:
+        pygame.display.set_caption("Effects")
+
+def advanced():
+    while True:
+        pygame.display.set_caption("Advanced Options")
+
+def info():
+    while True:
+        pygame.display.set_caption("Information")
+
 
 def main():
     """Main game loop."""
     while True:
-        mouse_pos = pygame.mouse.get_pos()
-        mouse_clicked = False
-        mouse_wheel = 0
-        
-        music_manager.update(game_state.state)
+        pygame.display.set_caption("Main Menu")
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        MENU_MOUSE_CLICKED = False
+        MENU_MOUSE_WHEEL = 0
+
+        screen.fill("white")
+
+        TITLE_TEXT = pygame.Font.render("Voice Synthesizer", True, "000000")
+        TITLE_RECT = TITLE_TEXT.get_rect(left=(640, 100))
+
+        VOWEL_BUTTON = Button()
+        TRAIT_BUTTON = Button()
+        PITCH_BUTTON = Button()
+        EFFECTS_BUTTON = Button()
+        ADVANCED_BUTTON = Button()
+        PLAYER_BUTTON = Button()
+        INFO_BUTTON = Button()
+
+
+        screen.blit(TITLE_TEXT,TITLE_RECT)
 
         # Process events
         for event in pygame.event.get():
@@ -129,15 +164,11 @@ def main():
                 if event.button == 1:  # Left mouse button
                     mouse_clicked = True
                 elif event.button == 4:  # Mouse wheel up
-                    mouse_wheel = 1
+                    MENU_MOUSE_WHEEL = 1
                 elif event.button == 5:  # Mouse wheel down
-                    mouse_wheel = -1
+                    MENU_MOUSE_WHEEL = -1
         
-        # Draw background
-        if game_state.current_background:
-            
-            screen.blit(game_state.current_background, (0, 0))
-            pygame.draw.rect(screen, BG_COLOUR,)
+
         
 
         

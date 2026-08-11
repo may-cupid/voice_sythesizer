@@ -6,7 +6,6 @@ import pygame
 from synthesizer import speech
 
 
-
 class PlayerManager:
     def __init__(self):
         # Initialize pygame mixer

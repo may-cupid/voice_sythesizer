@@ -1,12 +1,17 @@
 import sys
 sys.dont_write_bytecode = True
 import pygame
-from constants import BUTTON_COLOUR, BUTTON_HOVER_COLOUR, BORDER_COLOUR, TEXT_COLOUR, UI_COLOUR
+from constants import BUTTON_COLOUR, BUTTON_HOVER_COLOUR, BORDER_COLOUR, TEXT_COLOUR, UI_COLOUR, FONT, SMALL_FONT
+
+
 class Button:
     """Button class for creating interactive buttons."""
     def __init__(self, x, y, width, height, text, callback=None, icon=None):
+        self.y = y
+        self.x = x 
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
+        
         self.callback = callback
         self.hovered = False
         self.icon = icon
