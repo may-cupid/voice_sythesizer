@@ -6,7 +6,7 @@ pygame.font.init
 
 
 #screen
-SCREEN_HEIGHT = 1200
+SCREEN_HEIGHT = 300
 SCREEN_WIDTH = 900
 
 #colours

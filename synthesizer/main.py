@@ -11,8 +11,8 @@ import struct
 import math
 from constants import SCREEN_HEIGHT,SCREEN_WIDTH
 
-from ui_elements import Button, InfoPanel
-from game_state import GameState
+
+#from game_state import GameState
 
 
 import synthesizer as synth
@@ -112,6 +112,8 @@ clock = pygame.time.Clock()
 FONT = pygame.font.SysFont("cambria", 50)
 SMALL_FONT = pygame.font.SysFont("cambria", 25)
 
+from ui_elements import Button, InfoPanel
+
 VOWEL_BUTTON = Button(0,0,100,50, "Select Vowel")
 TRAIT_BUTTON = Button(0,0,100,50, "Trait")
 PITCH_BUTTON = Button(0,0,100,50, "Set Pitch")
@@ -125,35 +127,58 @@ BACK_BUTTON = Button(0,0,100,50, "Back")
 
 f0 = 200
 
+
 def player():
     while True:
         pygame.display.set_caption("Player")
 
         screen.fill("black")
+        BACK_BUTTON.draw(screen)
+
+        if BACK_BUTTON.update == True:
+            player == False
+
+    
 
 def vowel_selection():
     while True:
         pygame.display.set_caption("Vowel Selection")
 
         screen.fill("blue")
+        BACK_BUTTON.draw(screen)
+
+        if BACK_BUTTON.update == True:
+            vowel_selection == False
 
 def effects():
     while True:
         pygame.display.set_caption("Effects")
 
         screen.fill("green")
+        BACK_BUTTON.draw(screen)
+
+        if BACK_BUTTON.update == True:
+            effects == False
 
 def advanced():
     while True:
         pygame.display.set_caption("Advanced Options")
 
         screen.fill("red")
+        BACK_BUTTON.draw(screen)
+
+        if BACK_BUTTON.update == True:
+            advanced == False
 
 def info():
     while True:
         pygame.display.set_caption("Information")
 
         screen.fill("yellow")
+        BACK_BUTTON.draw(screen)
+
+        if BACK_BUTTON.update == True:
+            player == False
 
 
 def main():
@@ -161,14 +186,13 @@ def main():
     while True:
         pygame.display.set_caption("Main Menu")
         MENU_MOUSE_POS = pygame.mouse.get_pos()
-        MENU_MOUSE_CLICKED = False
+        #MENU_MOUSE_CLICKED = False
         MENU_MOUSE_WHEEL = 0
 
+        TITLE_TEXT = pygame.Font.render(FONT, "Voice Synthesizer", True, "black")
+        TITLE_RECT = TITLE_TEXT.get_rect(center=(640, 100))
+
         screen.fill("white")
-
-        TITLE_TEXT = pygame.Font.render("Voice Synthesizer", True, "000000")
-        TITLE_RECT = TITLE_TEXT.get_rect(left=(640, 100))
-
         screen.blit(TITLE_TEXT,TITLE_RECT)
 
         VOWEL_BUTTON.draw(screen)
@@ -193,29 +217,29 @@ def main():
                 elif event.button == 5:  # Mouse wheel down
                     MENU_MOUSE_WHEEL = -1
 
-                elif VOWEL_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif VOWEL_BUTTON.update():
                     """Open the vowel selector"""
                     vowel_selection()
 
-                elif TRAIT_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif TRAIT_BUTTON.update():
                     """select male/female"""
 
-                elif PITCH_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif PITCH_BUTTON.update():
                     """Open the text input to input a pitch in Hz"""
 
-                elif EFFECTS_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif EFFECTS_BUTTON.update():
                     """Open the Effects window"""
                     effects()
 
-                elif ADVANCED_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif ADVANCED_BUTTON.update():
                     """open the advanced settings (keyboard input for F1-3 and Bandwidth)"""
                     advanced()
 
-                elif PLAYER_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif PLAYER_BUTTON.update():
                     """open the player"""
                     player()
 
-                elif INFO_BUTTON.update(MENU_MOUSE_POS, MENU_MOUSE_CLICKED):
+                elif INFO_BUTTON.update():
                     """open the info panel"""
                     info()
                     
@@ -225,3 +249,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    FPS

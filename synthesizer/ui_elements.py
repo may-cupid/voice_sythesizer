@@ -68,7 +68,7 @@ class Dropdown:
         pygame.draw.rect(screen, BORDER_COLOUR, self.rect, width=2, border_radius=5)
         
         # Render dropdown text
-        text_surf = small_font.render(self.text, True, TEXT_COLOUR)
+        text_surf = SMALL_FONT.render(self.text, True, TEXT_COLOUR)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
         
@@ -108,7 +108,7 @@ class Dropdown:
                 pygame.draw.rect(dropdown_surface, BORDER_COLOUR, option_rect, width=1)
                 
                 # Option text
-                option_text = small_font.render(option, True, TEXT_COLOUR)
+                option_text = SMALL_FONT.render(option, True, TEXT_COLOUR)
                 option_text_rect = option_text.get_rect(center=option_rect.center)
                 dropdown_surface.blit(option_text, option_text_rect)
             
@@ -232,7 +232,7 @@ class InfoPanel:
         pygame.draw.rect(screen, BORDER_COLOUR, self.panel_rect, width=2, border_radius=10)
         
         # Draw title
-        title_surf = font.render(self.title, True, HEADER_COLOUR)
+        title_surf = FONT.render(self.title, True, TEXT_COLOUR)
         title_rect = title_surf.get_rect(midtop=(self.panel_rect.centerx, self.panel_rect.top + 20))
         screen.blit(title_surf, title_rect)
         
@@ -252,7 +252,7 @@ class InfoPanel:
         y_offset = content_rect.top - self.scroll_offset
         for line in self.text_content:
             if line:  # If not an empty line
-                text_surf = info_font.render(line, True, TEXT_COLOUR)
+                text_surf = SMALL_FONT.render(line, True, TEXT_COLOUR)
                 text_rect = text_surf.get_rect(topleft=(content_rect.left, y_offset))
                 
                 # Only draw if within content_rect
