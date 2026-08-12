@@ -1,7 +1,9 @@
 import sys
 sys.dont_write_bytecode = True
 import pygame
-from constants import BUTTON_COLOUR, BUTTON_HOVER_COLOUR, BORDER_COLOUR, TEXT_COLOUR, UI_COLOUR, FONT, SMALL_FONT
+
+from constants import BUTTON_COLOUR, BUTTON_HOVER_COLOUR, BORDER_COLOUR, TEXT_COLOUR, UI_COLOUR
+from main import FONT, SMALL_FONT
 
 
 class Button:

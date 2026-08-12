@@ -6,7 +6,8 @@ import sounddevice as sd
 import time
 from scipy import signal
 
-from parameters import f0, FormantController
+from parameters import FormantController
+from main import f0
 
 
 def synthesize_speech():

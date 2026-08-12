@@ -4,7 +4,6 @@ sys.dont_write_bytecode = True
 import pygame
 pygame.font.init
 
-pygame.font.get_init = True
 
 #screen
 SCREEN_HEIGHT = 1200

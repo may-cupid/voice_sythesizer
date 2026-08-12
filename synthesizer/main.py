@@ -109,6 +109,9 @@ clock = pygame.time.Clock()
 # Create info panel
 #info_panel = InfoPanel(INFO_CONTENT["title"], INFO_CONTENT["text"])
 
+FONT = pygame.font.SysFont("cambria", 50)
+SMALL_FONT = pygame.font.SysFont("cambria", 25)
+
 VOWEL_BUTTON = Button(0,0,100,50, "Select Vowel")
 TRAIT_BUTTON = Button(0,0,100,50, "Trait")
 PITCH_BUTTON = Button(0,0,100,50, "Set Pitch")
@@ -118,6 +121,9 @@ PLAYER_BUTTON = Button(0,0,100,50, "Play")
 INFO_BUTTON = Button(0,0,100,50, "Info")
 
 BACK_BUTTON = Button(0,0,100,50, "Back")
+
+
+f0 = 200
 
 def player():
     while True:
