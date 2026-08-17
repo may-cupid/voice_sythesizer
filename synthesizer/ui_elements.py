@@ -32,18 +32,14 @@ class Button:
             text_rect = text_surf.get_rect(center=self.rect.center)
             screen.blit(text_surf, text_rect)
         
-    def update(self, mouse_pos, mouse_clicked, blocked_by_dropdown=False):
-        """Update button state and handle clicks."""
-        # Don't update if a dropdown is blocking this button
-        if blocked_by_dropdown:
-            self.hovered = False
-            return False
-            
-        self.hovered = self.rect.collidepoint(mouse_pos)
-        if self.hovered and mouse_clicked and self.callback:
-            self.callback()
+    def checkForInput(self, position):
+        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+            self.hovered == True
+            print("button press")
             return True
-        return False
+        else:
+            return False
+  
 
 
 class Dropdown:
@@ -213,6 +209,8 @@ class Dropdown:
         return self.rect.collidepoint(mouse_pos)
     
 class InfoPanel:
+
+
     """Info panel that displays game information."""
     def __init__(self, title, text_content, images=None):
         self.title = title
@@ -306,3 +304,8 @@ class InfoPanel:
     def toggle(self):
         """Toggle the visibility of the info panel."""
         self.visible = not self.visible
+
+def generateNewBG():
+    dfd
+
+def
