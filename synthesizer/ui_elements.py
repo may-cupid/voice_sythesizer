@@ -304,8 +304,9 @@ class InfoPanel:
     def toggle(self):
         """Toggle the visibility of the info panel."""
         self.visible = not self.visible
-
+"""
 def generateNewBG():
     dfd
 
 def
+"""
