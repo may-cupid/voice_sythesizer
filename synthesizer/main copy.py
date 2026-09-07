@@ -108,6 +108,19 @@ clock = pygame.time.Clock()
 #music_manager = MusicManager()
 
 manager = pygame_gui.UIManager((SCREEN_WIDTH,SCREEN_HEIGHT))
+back_manager = pygame_gui.UIManager((SCREEN_WIDTH,SCREEN_HEIGHT))
+vowel_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+trait_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+pitch_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+effects_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+advanced_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+player_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+info_manager =  pygame_gui.UIManager((SCREEN_WIDTH-100,SCREEN_HEIGHT-100))
+
+
+temp_window = pygame_gui.core.IContainerLikeInterface
+
+
 
 
 # Create info panel
@@ -118,45 +131,117 @@ SMALL_FONT = pygame.font.SysFont("cambria", 25)
 button_layout_rect = pygame.Rect((30, 20), (100, 20))
 
 
-VOWEL_button= pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+VOWEL_button= pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, 0), (100, 50)),
           text='Select Vowel',
           manager=manager)
-TRAIT_button= pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+TRAIT_button= pygame_gui.elements.UIButton(relative_rect=pygame.Rect((100, 0), (100, 50)),
           text='Trait',
           manager=manager)
-PITCH_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+PITCH_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((200, 0), (100, 50)),
           text='Pitch',
           manager=manager)
-EFFECTS_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+EFFECTS_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((300, 0), (100, 50)),
           text='Effects',
           manager=manager)
-ADVANCED_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+ADVANCED_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((400, 0), (100, 50)),
           text='Advanced Options',
           manager=manager)
-PLAYER_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+PLAYER_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((500, 0), (100, 50)),
           text='Play',
           manager=manager)
-INFO_button= pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+INFO_button= pygame_gui.elements.UIButton(relative_rect=pygame.Rect((600, 0), (100, 50)),
           text='Info',
           manager=manager)
-BACK_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 275), (100, 50)),
+
+
+
+
+
+
+BACK_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((350, 600), (100, 50)),
           text='Back',
-          manager=manager)
+          manager=(back_manager))
 
 
 #default pitch
 f0 = 200
 
 
-def player():
-    time_delta = clock.tick(60)/1000.0
+def trait():
     while True:
+            time_delta = clock.tick(60)/1000.0
+            pygame.display.set_caption("Pitch")
+            PITCH_MOUSE_POS = pygame.mouse.get_pos()
+    
+            screen.fill("black")
+            trait_manager.draw_ui(temp_window)
+
+            # Process events
+            for event in pygame.event.get():
+    
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+    
+                    if event.ui_element == BACK_button:  # Left mouse button
+                        trait() == False
+    
+    
+                    elif event.ui_element == 4:  # Mouse wheel up
+                        MENU_MOUSE_WHEEL = 1
+                    elif event.ui_element == 5:  # Mouse wheel down
+                        MENU_MOUSE_WHEEL = -1
+    
+                pygame.display.update()
+                clock.tick(60)  
+
+
+def pitch():
+    while True:
+            time_delta = clock.tick(60)/1000.0
+            pygame.display.set_caption("Player")
+            PLAYER_MOUSE_POS = pygame.mouse.get_pos()
+    
+            screen.fill("black")
+            pitch_manager.draw_ui(temp_window)
+    
+        
+            # Process events
+            for event in pygame.event.get():
+    
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+    
+                    if event.ui_element == BACK_button:  # Left mouse button
+                        pitch == False
+                        pygame_gui.remove_window(temp_window)
+    
+    
+                    elif event.ui_element == 4:  # Mouse wheel up
+                        MENU_MOUSE_WHEEL = 1
+                    elif event.ui_element == 5:  # Mouse wheel down
+                        MENU_MOUSE_WHEEL = -1
+    
+                pygame.display.update()
+                clock.tick(60)     
+
+
+
+
+def player():
+    
+    while True:
+        time_delta = clock.tick(60)/1000.0
         pygame.display.set_caption("Player")
         PLAYER_MOUSE_POS = pygame.mouse.get_pos()
 
         screen.fill("black")
-        BACK_BUTTON.draw(screen)
+        player_manager.draw_ui(temp_window)
 
+    
         # Process events
         for event in pygame.event.get():
 
@@ -180,19 +265,16 @@ def player():
     
 
 def vowel_selection():
-    time_delta = clock.tick(60)/1000.0
+    
     while True:
+        time_delta = clock.tick(60)/1000.0
         pygame.display.set_caption("Vowel Selection")
 
         screen.fill("blue")
-        screen.blit()
+        vowel_manager.draw_ui(temp_window)
 
         VOWEL_MOUSE_POS = pygame.mouse.get_pos
 
-        BACK_button.draw(screen)
-
-        if BACK_button.checkForInput == True:
-            vowel_selection == False
 
         # Process events
         for event in pygame.event.get():
@@ -216,16 +298,16 @@ def vowel_selection():
             clock.tick(60)  
 
 def effects():
-    time_delta = clock.tick(60)/1000.0
+    
     while True:
+        time_delta = clock.tick(60)/1000.0
         pygame.display.set_caption("Effects")
         FX_MOUSE_POS = pygame.mouse.get_pos
 
         screen.fill("green")
-        BACK_button.draw(screen)
+        effects_manager.draw_ui(temp_window)
 
-
-                # Process events
+        # Process events
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -240,16 +322,14 @@ def effects():
             clock.tick(60)  
 
 def advanced():
-    time_delta = clock.tick(60)/1000.0
+    
     while True:
+        time_delta = clock.tick(60)/1000.0
         pygame.display.set_caption("Advanced Options")
         ADVANCED_MOUSE_POS = pygame.mouse.get_pos
 
         screen.fill("red")
-        BACK_button.draw(screen)
-
-        if BACK_button.checkForInput == True:
-            advanced == False
+        advanced_manager.draw_ui(temp_window)
 
         # Process events
         for event in pygame.event.get():
@@ -267,17 +347,16 @@ def advanced():
             clock.tick(60)  
 
 def info():
-    pygame.display.set_caption("Information")
+    
     while True:
         time_delta = clock.tick(60)/1000.0
         pygame.display.set_caption("Information")
 
         screen.fill("yellow")
-        BACK_button.draw(screen)
+        info_manager.draw_ui(temp_window)
+
         INFO_MOUSE_POS = pygame.mouse.get_pos()
 
-        if BACK_button.checkForInput == True:
-            player == False
 
         # Process events
         for event in pygame.event.get():
@@ -310,25 +389,25 @@ def main():
 
                 if event.ui_element == VOWEL_button: 
                     """Open the vowel selector"""
-                    vowel_selection is True
+                    vowel_selection()
 
                 elif event.ui_element ==TRAIT_button:
-                        """select male/female"""
-    
+                    """select male/female"""
+                    trait()
                 elif event.ui_element ==PITCH_button:
-                        """Open the text input to input a pitch in Hz"""
-    
+                    """Open the text input to input a pitch in Hz"""
+                    pitch()
                 elif event.ui_element ==EFFECTS_button:
-                        """Open the Effects window"""
-                        effects
+                    """Open the Effects window"""
+                    effects()
     
                 elif event.ui_element ==ADVANCED_button:
                     """open the advanced settings (keyboard input for F1-3 and Bandwidth)"""
-                    advanced
+                    advanced()
     
                 elif event.ui_element ==PLAYER_button:
                     """open the player"""
-                    player
+                    player()
     
                 elif event.ui_element ==INFO_button:
                     """open the info panel"""
