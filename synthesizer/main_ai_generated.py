@@ -1,0 +1,499 @@
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+import pygame
+import pygame_gui
+from pygame import Rect
+
+sys.dont_write_bytecode = True
+
+try:
+    from synthesizer import generate_speech
+except Exception:
+    from synthesize_speech import generate_speech
+
+
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 600
+SETTINGS_FILE = Path(__file__).with_name("ai_generated_settings.json")
+
+DEFAULT_EFFECTS = {
+    "vibrato_enabled": False,
+    "vibrato_rate": 5.0,
+    "vibrato_depth": 12.0,
+    "gain": 1.0,
+    "noise_level": 0.0,
+    "formant_shift": 0.0,
+}
+
+DEFAULT_SETTINGS = {
+    "f0": 200,
+    "gender": "female",
+    "vowel": "A",
+    "effects": DEFAULT_EFFECTS.copy(),
+}
+
+
+def clamp(value, minimum, maximum):
+    return max(minimum, min(value, maximum))
+
+
+def load_settings():
+    if not SETTINGS_FILE.exists():
+        save_settings(DEFAULT_SETTINGS)
+        return DEFAULT_SETTINGS.copy()
+
+    try:
+        with SETTINGS_FILE.open("r", encoding="utf-8") as settings_file:
+            raw_data = json.load(settings_file)
+    except Exception:
+        save_settings(DEFAULT_SETTINGS)
+        return DEFAULT_SETTINGS.copy()
+
+    merged = DEFAULT_SETTINGS.copy()
+    merged.update(raw_data)
+
+    if not isinstance(raw_data.get("effects", {}), dict):
+        merged["effects"] = DEFAULT_EFFECTS.copy()
+    else:
+        merged["effects"] = DEFAULT_EFFECTS.copy()
+        merged["effects"].update(raw_data["effects"])
+
+    return merged
+
+
+def save_settings(settings):
+    with SETTINGS_FILE.open("w", encoding="utf-8") as settings_file:
+        json.dump(settings, settings_file, indent=4)
+
+
+class VoiceSynthGUI:
+    def __init__(self):
+        pygame.mixer.pre_init(8192, -16, 1, 512)
+        pygame.init()
+
+        if not pygame.mixer.get_init():
+            pygame.mixer.init(8192, -16, 1, 512)
+
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Voice Synthesizer")
+
+        self.clock = pygame.time.Clock()
+        self.manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        self.settings = load_settings()
+        self.current_sound = None
+        self.player_window = None
+
+        self.font = pygame.font.SysFont("cambria", 22)
+        self.title_font = pygame.font.SysFont("cambria", 36)
+
+        self.build_main_menu()
+
+        self.running = True
+
+    def build_main_menu(self):
+        self.main_buttons = {}
+        button_specs = [
+            ("Select Vowel", 20, self.open_vowel_window),
+            ("Trait", 150, self.open_trait_window),
+            ("Pitch", 280, self.open_pitch_window),
+            ("Effects", 410, self.open_effects_window),
+            ("Play", 540, self.open_player_window),
+            ("Info", 670, self.open_info_window),
+        ]
+
+        for label, x, callback in button_specs:
+            button = pygame_gui.elements.UIButton(
+                relative_rect=Rect((x, 70), (110, 45)),
+                text=label,
+                manager=self.manager,
+                command=callback,
+            )
+            self.main_buttons[label] = button
+
+        self.status_label = pygame_gui.elements.UILabel(
+            relative_rect=Rect((20, 130), (860, 30)),
+            text=self.get_status_text(),
+            manager=self.manager,
+        )
+
+    def get_status_text(self):
+        return (
+            f"Gender: {self.settings['gender']} | Vowel: {self.settings['vowel']} | "
+            f"Pitch: {self.settings['f0']} Hz | Volume: {self.settings['effects'].get('gain', 1.0):.2f}"
+        )
+
+    def update_status(self):
+        if hasattr(self, "status_label"):
+            self.status_label.set_text(self.get_status_text())
+
+    def bottom_window_rect(self, width, height):
+        return Rect(
+            (SCREEN_WIDTH // 2 - width // 2, SCREEN_HEIGHT - height - 35),
+            (width, height),
+        )
+
+    def open_pitch_window(self):
+        self.close_window(self.player_window)
+        pitch_window = pygame_gui.elements.UIWindow(
+            self.bottom_window_rect(400, 220),
+            window_display_title="Pitch",
+            manager=self.manager,
+        )
+        self._current_window = pitch_window
+
+        label = pygame_gui.elements.UILabel(
+            relative_rect=Rect((20, 20), (200, 30)),
+            text="Enter pitch (f0):",
+            manager=self.manager,
+            container=pitch_window,
+        )
+
+        pitch_input = pygame_gui.elements.UITextEntryLine(
+            relative_rect=Rect((20, 60), (220, 40)),
+            manager=self.manager,
+            container=pitch_window,
+        )
+        pitch_input.set_text(str(self.settings["f0"]))
+
+        def apply_pitch(*_):
+            try:
+                value = float(pitch_input.get_text())
+                if value <= 0:
+                    raise ValueError
+                self.settings["f0"] = value
+                self.update_status()
+                save_settings(self.settings)
+            except Exception:
+                pitch_input.set_text(str(self.settings["f0"]))
+            finally:
+                pitch_window.kill()
+
+        def close_pitch(*_):
+            pitch_window.kill()
+
+        apply_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((20, 120), (120, 40)),
+            text="Apply",
+            manager=self.manager,
+            container=pitch_window,
+            command=apply_pitch,
+        )
+
+        close_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((160, 120), (120, 40)),
+            text="Close",
+            manager=self.manager,
+            container=pitch_window,
+            command=close_pitch,
+        )
+
+
+    def open_trait_window(self):
+        self.close_window(self.player_window)
+        trait_window = pygame_gui.elements.UIWindow(
+            self.bottom_window_rect(400, 220),
+            window_display_title="Select Trait",
+            manager=self.manager,
+        )
+
+        label = pygame_gui.elements.UILabel(
+            relative_rect=Rect((20, 20), (200, 30)),
+            text="Choose trait:",
+            manager=self.manager,
+            container=trait_window,
+        )
+
+        male_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((20, 60), (150, 40)),
+            text="Male",
+            manager=self.manager,
+            container=trait_window,
+            command=lambda: set_trait("male"),
+        )
+        female_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((190, 60), (150, 40)),
+            text="Female",
+            manager=self.manager,
+            container=trait_window,
+            command=lambda: set_trait("female"),
+        )
+
+        def set_trait(gender):
+            self.settings["gender"] = gender
+            save_settings(self.settings)
+            self.update_status()
+            trait_window.kill()
+
+
+    def open_vowel_window(self):
+        self.close_window(self.player_window)
+        vowel_window = pygame_gui.elements.UIWindow(
+            self.bottom_window_rect(500, 220),
+            window_display_title="Select Vowel",
+            manager=self.manager,
+        )
+
+        vowels = ["A", "E", "I", "O", "U"]
+        buttons = []
+        x_positions = [20, 120, 220, 320, 420]
+
+        for index, vowel in enumerate(vowels):
+            btn = pygame_gui.elements.UIButton(
+                relative_rect=Rect((x_positions[index], 60), (80, 40)),
+                text=vowel,
+                manager=self.manager,
+                container=vowel_window,
+                command=lambda chosen=vowel: self._apply_vowel(chosen, vowel_window),
+            )
+            buttons.append(btn)
+
+        close_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((180, 120), (140, 40)),
+            text="Close",
+            manager=self.manager,
+            container=vowel_window,
+            command=vowel_window.kill,
+        )
+
+    def _apply_vowel(self, vowel, window):
+        self.settings["vowel"] = vowel
+        save_settings(self.settings)
+        self.update_status()
+        window.kill()
+
+    def open_effects_window(self):
+        self.close_window(self.player_window)
+        effects_window = pygame_gui.elements.UIWindow(
+            self.bottom_window_rect(600, 430),
+            window_display_title="Effects",
+            manager=self.manager,
+        )
+
+        sliders = []
+
+        def build_slider(label, y, start, min_value, max_value, number_format=None):
+            label_ui = pygame_gui.elements.UILabel(
+                relative_rect=Rect((20, y), (180, 25)),
+                text=label,
+                manager=self.manager,
+                container=effects_window,
+            )
+            slider = pygame_gui.elements.UIHorizontalSlider(
+                relative_rect=Rect((210, y), (260, 25)),
+                start_value=start,
+                value_range=(min_value, max_value),
+                manager=self.manager,
+                container=effects_window,
+            )
+            slider._display_value = number_format if number_format else "{:.2f}"
+            sliders.append((label_ui, slider))
+            return slider
+
+        def toggle_vibrato(*_):
+            self.settings["effects"]["vibrato_enabled"] = not self.settings["effects"].get("vibrato_enabled", False)
+            vibrato_toggle.set_text("Disable Vibrato" if self.settings["effects"]["vibrato_enabled"] else "Enable Vibrato")
+
+        def apply_effects(*_):
+            self.settings["effects"] = {
+                "vibrato_enabled": self.settings["effects"].get("vibrato_enabled", False),
+                "gain": float(gain_slider.current_value),
+                "noise_level": float(noise_slider.current_value),
+                "formant_shift": float(formant_slider.current_value),
+                "vibrato_rate": float(rate_slider.current_value),
+                "vibrato_depth": float(depth_slider.current_value),
+            }
+            save_settings(self.settings)
+            self.update_status()
+            effects_window.kill()
+
+        def close_effects(*_):
+            effects_window.kill()
+
+        vibrato_toggle = pygame_gui.elements.UIButton(
+            relative_rect=Rect((20, 20), (160, 40)),
+            text="Enable Vibrato" if not self.settings["effects"].get("vibrato_enabled", False) else "Disable Vibrato",
+            manager=self.manager,
+            container=effects_window,
+            command=toggle_vibrato,
+        )
+
+        gain_slider = build_slider("Gain", 70, self.settings["effects"].get("gain", 1.0), 0.5, 2.0)
+        noise_slider = build_slider("Noise", 110, self.settings["effects"].get("noise_level", 0.0), 0.0, 0.5)
+        formant_slider = build_slider("Formant Shift", 150, self.settings["effects"].get("formant_shift", 0.0), -0.5, 0.5)
+        rate_slider = build_slider("Vibrato Rate", 190, self.settings["effects"].get("vibrato_rate", 5.0), 0.0, 10.0)
+        depth_slider = build_slider("Vibrato Depth", 230, self.settings["effects"].get("vibrato_depth", 12.0), 0.0, 25.0)
+
+        apply_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((20, 300), (120, 40)),
+            text="Apply",
+            manager=self.manager,
+            container=effects_window,
+            command=apply_effects,
+        )
+        close_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((160, 300), (120, 40)),
+            text="Close",
+            manager=self.manager,
+            container=effects_window,
+            command=close_effects,
+        )
+
+
+    def open_info_window(self):
+        self.close_window(self.player_window)
+        info_window = pygame_gui.elements.UIWindow(
+            self.bottom_window_rect(500, 300),
+            window_display_title="Information",
+            manager=self.manager,
+        )
+
+        content = (
+            "Voice Synthesizer\n\n"
+            "Use the menu buttons to pick a vowel, trait, pitch, and effects.\n"
+            "The player window will generate and loop the current voice output."
+        )
+
+        pygame_gui.elements.UITextBox(
+            html_text=content,
+            relative_rect=Rect((20, 20), (460, 220)),
+            manager=self.manager,
+            container=info_window,
+        )
+
+        close_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((170, 250), (120, 40)),
+            text="Close",
+            manager=self.manager,
+            container=info_window,
+            command=info_window.kill,
+        )
+
+    def open_player_window(self):
+        self.close_window(self.player_window)
+
+        player_window = pygame_gui.elements.UIWindow(
+            self.bottom_window_rect(600, 380),
+            window_display_title="Player",
+            manager=self.manager,
+        )
+        self.player_window = player_window
+
+        def play_audio(*_):
+            status_label.set_text("Generating audio...")
+            try:
+                _, speech = generate_speech(
+                    gender=self.settings["gender"],
+                    vowel=self.settings["vowel"],
+                    f0=float(self.settings["f0"]),
+                    effects=self.settings["effects"],
+                )
+            except Exception:
+                status_label.set_text("Generation failed")
+                return
+
+            pcm = np.array(speech, dtype=np.float32)
+            pcm = np.clip(pcm, -1.0, 1.0)
+            pcm_int16 = np.int16(pcm * 32767)
+            sound_bytes = pcm_int16.tobytes()
+
+            if self.current_sound is not None:
+                self.current_sound.stop()
+
+            self.current_sound = pygame.mixer.Sound(buffer=sound_bytes)
+            self.current_sound.set_volume(float(volume_slider.current_value))
+            self.current_sound.play(loops=-1)
+            status_label.set_text("Playing looped output")
+
+        def stop_audio(*_):
+            if self.current_sound is not None:
+                self.current_sound.stop()
+            status_label.set_text("Stopped")
+
+        def update_volume(*_):
+            if self.current_sound is not None:
+                self.current_sound.set_volume(float(volume_slider.current_value))
+
+        def close_player(*_):
+            stop_audio()
+            save_settings(self.settings)
+            player_window.kill()
+            self.player_window = None
+
+        play_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((20, 20), (120, 40)),
+            text="Play",
+            manager=self.manager,
+            container=player_window,
+            command=play_audio,
+        )
+        stop_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((160, 20), (120, 40)),
+            text="Stop",
+            manager=self.manager,
+            container=player_window,
+            command=stop_audio,
+        )
+        close_button = pygame_gui.elements.UIButton(
+            relative_rect=Rect((300, 20), (120, 40)),
+            text="Close",
+            manager=self.manager,
+            container=player_window,
+            command=close_player,
+        )
+
+        volume_slider = pygame_gui.elements.UIHorizontalSlider(
+            relative_rect=Rect((20, 90), (400, 25)),
+            start_value=1.0,
+            value_range=(0.0, 1.0),
+            manager=self.manager,
+            container=player_window,
+        )
+
+        status_label = pygame_gui.elements.UILabel(
+            relative_rect=Rect((20, 140), (520, 30)),
+            text="Stopped",
+            manager=self.manager,
+            container=player_window,
+        )
+
+        volume_slider.on_value_changed = lambda *_: update_volume()
+
+    def close_window(self, window):
+        if window is not None:
+            try:
+                window.kill()
+            except Exception:
+                pass
+            self.player_window = None
+
+    def run(self):
+        while self.running:
+            time_delta = self.clock.tick(60) / 1000.0
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    save_settings(self.settings)
+                    self.running = False
+                    break
+
+                self.manager.process_events(event)
+
+            self.manager.update(time_delta)
+            self.screen.fill("black")
+            self.manager.draw_ui(self.screen)
+
+            title = self.title_font.render("Voice Synthesizer", True, "white")
+            self.screen.blit(title, (20, 15))
+
+            pygame.display.update()
+
+        pygame.quit()
+
+
+if __name__ == "__main__":
+    app = VoiceSynthGUI()
+    app.run()

@@ -1,0 +1,15 @@
+{
+    "f0": 800.0,
+    "gender": "male",
+    "vowel": {
+        "mouse_button": 1
+    },
+    "effects": {
+        "vibrato_enabled": true,
+        "gain": 1.6211340206185567,
+        "noise_level": 0.030927835051546393,
+        "formant_shift": -0.17525773195876287,
+        "vibrato_rate": 5.0,
+        "vibrato_depth": 12.0
+    }
+}

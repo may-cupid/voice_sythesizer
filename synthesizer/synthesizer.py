@@ -2,96 +2,98 @@ import sys
 sys.dont_write_bytecode = True
 
 import numpy as np
-import sounddevice as sd
-import time
 from scipy import signal
 
 from parameters import FormantController
-from main import f0
 
 
-def synthesize_speech():
-    """Synthesize speech using formant filtering of a buzz source"""
+DEFAULT_EFFECTS = {
+    "vibrato_enabled": False,
+    "vibrato_depth": 12.0,
+    "vibrato_rate": 5.0,
+    "gain": 1.0,
+    "noise_level": 0.0,
+    "formant_shift": 0.0,
+}
 
-    fc = FormantController()
 
-    formant_list = fc.load_preset("male", "A")[0]
-    band_list = fc.load_preset("male", "A")[1]
+def generate_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0, effects=None, fs: int = 8192):
+    """Generate a loopable synthesised vowel signal.
 
-    # Formant frequencies in Hz
-    F = np.array(formant_list)
-    # Formant bandwidths in Hz
-    B = np.array(band_list)
+    Parameters
+    ----------
+    gender : str
+        Either 'male' or 'female'.
+    vowel : str
+        One of 'A', 'E', 'I', 'O', 'U'.
+    f0 : float
+        Fundamental frequency in Hz.
+    effects : dict | None
+        Optional effect settings. Supported keys are listed in DEFAULT_EFFECTS.
+    fs : int
+        Sampling rate used for synthesis.
+    """
 
-    # Sampling rate in Hz
-    fs = 8192
-    
-    # Pole radii and angles
+    if effects is None:
+        effects = {}
+
+    effect_values = DEFAULT_EFFECTS.copy()
+    effect_values.update(effects)
+
+    fc = FormantController(gender=gender, vowel=vowel)
+    formant_list = list(fc.formant_list)
+    band_list = list(fc.band_list)
+
+    formant_shift = float(effect_values.get("formant_shift", 0.0))
+    if formant_shift != 0:
+        formant_list = [frequency * (1 + formant_shift) for frequency in formant_list]
+
+    F = np.array(formant_list, dtype=float)
+    B = np.array(band_list, dtype=float)
+
     R = np.exp(-np.pi * B / fs)
     theta = 2 * np.pi * F / fs
     poles = R * np.exp(1j * theta)
-    
-    # Convert poles to filter coefficients
-    # zp2tf equivalent: poles and their conjugates
+
     all_poles = np.concatenate([poles, np.conj(poles)])
-    A = np.poly(all_poles)  # Denominator coefficients
-    B_coeff = np.array([1.0])  # Numerator coefficients (no zeros)
-    
-    # Ensure A is real (should be, but numerical errors might occur)
-    A = np.real(A)
-    
-    # Fundamental frequency in Hz
-    #f0 = f0
+    A = np.real(np.poly(all_poles))
+    B_coeff = np.array([1.0])
+
+    if f0 <= 0:
+        raise ValueError("f0 must be greater than zero.")
+
+    nsamps = fs
+    n = np.arange(nsamps)
     w0T = 2 * np.pi * f0 / fs
 
-    
-    # Number of harmonics
-    nharm = int(np.floor((fs/2) / f0))
-    nsamps = fs  # 1 second of audio
-    
-    # Generate buzzy source signal (sum of harmonics)
-    n = np.arange(nsamps)
-    sig = np.zeros(nsamps)
-    for i in range(1, nharm + 1):
-        sig += np.cos(i * w0T * n)  #cos makes sense, since the constants we got from previous calcs were negative
-    
+    nharm = int(np.floor((fs / 2) / f0))
+    sig = np.zeros(nsamps, dtype=float)
 
-    # Normalize
-    sig = sig / np.max(np.abs(sig))
-    
-    # Apply formant filter
-    # Filter the signal using the denominator coefficients A
-    # scipy.signal.lfilter is the equivalent of filter(B_coeff, A, sig)
-  
+    for harmonic in range(1, nharm + 1):
+        sig += (1 / harmonic) * np.cos(harmonic * w0T * n)
+
+    sig = sig / np.max(np.abs(sig)) if np.max(np.abs(sig)) > 0 else sig
+
+    if effect_values.get("vibrato_enabled", False):
+        vibrato_depth = float(effect_values.get("vibrato_depth", 12.0))
+        vibrato_rate = float(effect_values.get("vibrato_rate", 5.0))
+        modulation = 1.0 + (vibrato_depth / max(f0, 1.0)) * np.sin(2 * np.pi * vibrato_rate * n / fs)
+        sig = sig * modulation
+
+    noise_level = float(effect_values.get("noise_level", 0.0))
+    if noise_level > 0:
+        sig = sig + (np.random.default_rng(0).normal(0, noise_level, size=nsamps))
+
     speech = signal.lfilter(B_coeff, A, sig)
-    
-    #vibrato
+    speech = speech / np.max(np.abs(speech)) if np.max(np.abs(speech)) > 0 else speech
 
-    """
-    speech = 
-    Fs 
-    t = np.arange(0,0.2,1/Fs) # Time vector
+    gain = float(effect_values.get("gain", 1.0))
+    if gain != 1.0:
+        speech = speech * gain
 
-    f0_1 = F # Signal frequency-1 to construct message signal
-    fm2 = 45 # Signal frequency-2 to construct message signal
-    b = 1 # modulation index
+    return sig, speech
 
 
-    # Normalize speech for playback
-    speech = speech / np.max(np.abs(speech))
-    """
-
-    """
-    print("Done!")
-    
-    print("Playing speech (ahh)...")
-
-
-    """
-    sd.play(speech, fs)
-    time.sleep(1)  # Wait for playback to finish
-
-    return sig, speech 
-
-
-synthesize_speech()
+def synthesize_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0, effects=None):
+    """Backward-compatible wrapper used by the new GUI and any old callers."""
+    return generate_speech(gender=gender, vowel=vowel, f0=f0, effects=effects)

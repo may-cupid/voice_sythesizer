@@ -1,8 +1,6 @@
 import sys
 sys.dont_write_bytecode = True
 
-from main import f0
-
 #frequency
 
 #f0 = 200
