@@ -6,6 +6,14 @@ from scipy import signal
 
 from parameters import FormantController
 
+
+import sounddevice as sd
+import time
+
+
+
+SAMPLE_RATE = 8192
+
 DEFAULT_EFFECTS = {
     "vibrato_enabled": False,
     "vibrato_depth": 12.0,
@@ -15,15 +23,15 @@ DEFAULT_EFFECTS = {
     "formant_shift": 0.0,
 }
 
-def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effects=None, fs: int = 8192):
+def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effects=None, fs: int = SAMPLE_RATE):
     """Generate a loopable synthesised vowel signal.
 
     Parameters
     ----------
     gender : str
         Either 'male' or 'female'.
-    vowel : str
-        One of 'A', 'E', 'I', 'O', 'U'.
+    vowel : str | dict
+        A vowel name or a serialized FormantController dictionary.
     f0 : float
         Fundamental frequency in Hz.
     effects : dict | None
@@ -70,7 +78,7 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     for harmonic in range(1, nharm + 1):
         sig += (1 / harmonic) * np.cos(harmonic * w0T * n)
 
-    sig = sig / np.max(np.abs(sig)) if np.max(np.abs(sig)) > 0 else sig
+    sig = sig / np.max(np.abs(sig))
 
     if effect_values.get("vibrato_enabled", False):
         vibrato_depth = float(effect_values.get("vibrato_depth", 12.0))
@@ -81,17 +89,34 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     noise_level = float(effect_values.get("noise_level", 0.0))
     if noise_level > 0:
         sig = sig + (np.random.default_rng(0).normal(0, noise_level, size=nsamps))
+
+
     speech = signal.lfilter(B_coeff, A, sig)
+
+    """
     peak = np.max(np.abs(speech))
     if peak > 0:
         speech = speech / peak
+    """
 
+    speech = speech / np.max(np.abs(speech))
     gain = float(effect_values.get("gain", 1.0))
-    return np.clip(speech * gain, -1.0, 1.0).astype(np.float32)
+
+    speech = speech / np.max(np.abs(speech))
+
+    sd.play(speech, fs)
+    time.sleep(1)  # Wait for playback to finish
+
+
+    speech_sound_file = np.clip(speech * gain, -1.0, 1.0).astype(np.float32)
+
+    return speech_sound_file, speech, fs
+
+
 
 
 def synthesize_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0, effects=None):
     """Backward-compatible wrapper used by the new GUI and any old callers."""
     return generate_speech(gender=gender, vowel=vowel, f0=f0, effects=effects)
 
-
+generate_speech()

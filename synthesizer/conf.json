@@ -1,14 +1,24 @@
 {
-    "f0": 800.0,
-    "gender": "male",
+    "f0": 700.0,
+    "gender": "female",
     "vowel": {
-        "mouse_button": 1
+        "name": "A",
+        "formant_list": [
+            850,
+            1220,
+            2810
+        ],
+        "band_list": [
+            90,
+            110,
+            160
+        ]
     },
     "effects": {
         "vibrato_enabled": false,
-        "vibrato_rate": 0.0,
+        "vibrato_rate": 1.958762886597938,
         "vibrato_depth": 0.0,
-        "gain": 1.5206185567010309,
+        "gain": 0.9484536082474226,
         "noise_level": 0.0,
         "formant_shift": -0.5
     }

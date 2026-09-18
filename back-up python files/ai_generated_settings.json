@@ -2,7 +2,9 @@
     "f0": 800.0,
     "gender": "male",
     "vowel": {
-        "mouse_button": 1
+        "name": "A",
+        "formant_list": [730.0, 1090.0, 2440.0],
+        "band_list": [80.0, 90.0, 140.0]
     },
     "effects": {
         "vibrato_enabled": false,

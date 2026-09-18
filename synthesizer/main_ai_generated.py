@@ -17,7 +17,7 @@ sys.dont_write_bytecode = True
 
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
-SETTINGS_FILE = Path(__file__).with_name("ai_generated_settings.json")
+SETTINGS_FILE = Path(__file__).with_name("conf.json")
 
 
 
@@ -33,7 +33,7 @@ DEFAULT_EFFECTS = {
 DEFAULT_SETTINGS = {
     "f0": 200,
     "gender": "female",
-    "vowel": "A",
+    "vowel": {"name": "A", "formant_list": [850.0, 1220.0, 2810.0], "band_list": [90.0, 110.0, 160.0]},
     "effects": DEFAULT_EFFECTS.copy(),
 }
 
@@ -62,6 +62,12 @@ def load_settings():
     else:
         merged["effects"] = DEFAULT_EFFECTS.copy()
         merged["effects"].update(raw_data["effects"])
+
+    vowel_data = merged.get("vowel")
+    if not isinstance(vowel_data, dict) or "name" not in vowel_data:
+        vowel_data = DEFAULT_SETTINGS["vowel"]
+    controller = synthesizer.FormantController(merged["gender"], vowel_data)
+    merged["vowel"] = controller.to_dict()
 
     return merged
 
@@ -105,7 +111,7 @@ class Config(object):
         return result
 
 
-conf = Config.load_json("conf.json")
+"""conf = Config.load_json("synthesizer\conf.json")"""
 
     
 class VoiceSynthGUI:
@@ -161,7 +167,7 @@ class VoiceSynthGUI:
 
     def get_status_text(self):
         return (
-            f"Gender: {self.settings['gender']} | Vowel: {self.settings['vowel']} | "
+            f"Gender: {self.settings['gender']} | Vowel: {self.settings['vowel']['name']} | "
             f"Pitch: {self.settings['f0']} Hz | Volume: {self.settings['effects'].get('gain', 1.0):.2f}"
         )
 
@@ -299,7 +305,8 @@ class VoiceSynthGUI:
         )
 
     def _apply_vowel(self, vowel, window):
-        self.settings["vowel"] = vowel
+        controller = synthesizer.FormantController(self.settings["gender"], vowel)
+        self.settings["vowel"] = controller.to_dict()
         save_settings(self.settings)
         self.update_status()
         window.kill()
@@ -424,49 +431,35 @@ class VoiceSynthGUI:
 
 
         def play_audio(*_):
-            print("play pressed")
             status_label.set_text("Generating audio...")
 
             try:
-
                 speech = synthesizer.generate_speech(
-
                     gender=self.settings["gender"],
                     vowel=self.settings["vowel"],
                     f0=float(self.settings["f0"]),
                     effects=self.settings["effects"])
-
-                print("play button works")
-                sd.play(speech, synthesizer.fs)
-                time.sleep(1)
-
-
-                
             except Exception:
                 status_label.set_text("Generation failed")
                 return
 
-            """pcm = np.array(speech, dtype=np.float32)
-            pcm = np.clip(pcm, -1.0, 1.0)
-            pcm_int16 = np.int16(pcm * 32767)
-            sound_bytes = pcm_int16.tobytes()
-
-            if self.current_sound is not None:
-                self.current_sound.stop()"""
-
-            self.current_sound = sd.play(speech, synthesizer.fs)
-            self.current_sound.set_volume(float(volume_slider.current_value))
-            self.current_sound.play(loops=-1)
+            sd.stop()
+            sd.play(
+                speech * float(volume_slider.current_value),
+                synthesizer.SAMPLE_RATE,
+                loop=True,
+            )
+            self.current_sound = True
             status_label.set_text("Playing looped output")
 
         def stop_audio(*_):
             if self.current_sound is not None:
-                self.current_sound.stop()
+                sd.stop()
+                self.current_sound = None
             status_label.set_text("Stopped")
 
         def update_volume(*_):
-            if self.current_sound is not None:
-                self.current_sound.set_volume(float(volume_slider.current_value))
+            return
 
         def close_player(*_):
             stop_audio()
