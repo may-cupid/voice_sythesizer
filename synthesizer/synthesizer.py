@@ -6,7 +6,6 @@ from scipy import signal
 
 from parameters import FormantController
 
-
 DEFAULT_EFFECTS = {
     "vibrato_enabled": False,
     "vibrato_depth": 12.0,
@@ -16,8 +15,7 @@ DEFAULT_EFFECTS = {
     "formant_shift": 0.0,
 }
 
-
-def generate_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0, effects=None, fs: int = 8192):
+def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effects=None, fs: int = 8192):
     """Generate a loopable synthesised vowel signal.
 
     Parameters
@@ -83,17 +81,17 @@ def generate_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0,
     noise_level = float(effect_values.get("noise_level", 0.0))
     if noise_level > 0:
         sig = sig + (np.random.default_rng(0).normal(0, noise_level, size=nsamps))
-
     speech = signal.lfilter(B_coeff, A, sig)
-    speech = speech / np.max(np.abs(speech)) if np.max(np.abs(speech)) > 0 else speech
+    peak = np.max(np.abs(speech))
+    if peak > 0:
+        speech = speech / peak
 
     gain = float(effect_values.get("gain", 1.0))
-    if gain != 1.0:
-        speech = speech * gain
-
-    return sig, speech
+    return np.clip(speech * gain, -1.0, 1.0).astype(np.float32)
 
 
 def synthesize_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0, effects=None):
     """Backward-compatible wrapper used by the new GUI and any old callers."""
     return generate_speech(gender=gender, vowel=vowel, f0=f0, effects=effects)
+
+

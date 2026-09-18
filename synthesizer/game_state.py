@@ -1,7 +1,7 @@
 import sys
 sys.dont_write_bytecode = True
 import pygame
-from ui_elements import Button, Dropdown
+from synthesizer.ui_elements_may import Button, Dropdown
 from player import PlayerManager
 from constants import SCREEN_HEIGHT, SCREEN_WIDTH
 

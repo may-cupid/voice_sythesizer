@@ -1,23 +1,25 @@
 import json
 import sys
 from pathlib import Path
+import time
 
-import numpy as np
+import sounddevice as sd
 import pygame
 import pygame_gui
 from pygame import Rect
 
+import synthesizer
+import threading
+
 sys.dont_write_bytecode = True
 
-try:
-    from synthesizer import generate_speech
-except Exception:
-    from synthesize_speech import generate_speech
 
 
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
 SETTINGS_FILE = Path(__file__).with_name("ai_generated_settings.json")
+
+
 
 DEFAULT_EFFECTS = {
     "vibrato_enabled": False,
@@ -68,7 +70,44 @@ def save_settings(settings):
     with SETTINGS_FILE.open("w", encoding="utf-8") as settings_file:
         json.dump(settings, settings_file, indent=4)
 
+class Dict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
+class Config(object):
+    @staticmethod
+    def __load__(data):
+        if type(data) is dict:
+            return Config.load_dict(data)
+        elif type(data) is list:
+            return Config.load_list(data)
+        else:
+            return data
+
+    @staticmethod
+    def load_dict(data: dict):
+        result = Dict()
+        for key, value in data.items():
+            result[key] = Config.__load__(value)
+        return result
+
+    @staticmethod
+    def load_list(data: list):
+        result = [Config.__load__(item) for item in data]
+        return result
+
+    @staticmethod
+    def load_json(path: str):
+        with open(path, "r") as f:
+            result = Config.__load__(json.loads(f.read()))
+        return result
+
+
+conf = Config.load_json("conf.json")
+
+    
 class VoiceSynthGUI:
     def __init__(self):
         pygame.mixer.pre_init(8192, -16, 1, 512)
@@ -382,28 +421,40 @@ class VoiceSynthGUI:
         )
         self.player_window = player_window
 
+
+
         def play_audio(*_):
+            print("play pressed")
             status_label.set_text("Generating audio...")
+
             try:
-                _, speech = generate_speech(
+
+                speech = synthesizer.generate_speech(
+
                     gender=self.settings["gender"],
                     vowel=self.settings["vowel"],
                     f0=float(self.settings["f0"]),
-                    effects=self.settings["effects"],
-                )
+                    effects=self.settings["effects"])
+
+                print("play button works")
+                sd.play(speech, synthesizer.fs)
+                time.sleep(1)
+
+
+                
             except Exception:
                 status_label.set_text("Generation failed")
                 return
 
-            pcm = np.array(speech, dtype=np.float32)
+            """pcm = np.array(speech, dtype=np.float32)
             pcm = np.clip(pcm, -1.0, 1.0)
             pcm_int16 = np.int16(pcm * 32767)
             sound_bytes = pcm_int16.tobytes()
 
             if self.current_sound is not None:
-                self.current_sound.stop()
+                self.current_sound.stop()"""
 
-            self.current_sound = pygame.mixer.Sound(buffer=sound_bytes)
+            self.current_sound = sd.play(speech, synthesizer.fs)
             self.current_sound.set_volume(float(volume_slider.current_value))
             self.current_sound.play(loops=-1)
             status_label.set_text("Playing looped output")

@@ -50,17 +50,19 @@ class FormantController:
         fc.load_custom_preset("myvoice_A")
     """
 
-    def __init__(self, gender: str = "male", vowel: str = "A"):
-
+    def __init__(self, gender: str = "male", vowel="A"):
         self.gender = gender
         self.vowel = vowel
         self.formant_list = [0.0, 0.0, 0.0]
         self.band_list = [0.0, 0.0, 0.0]
-        self.load_preset(gender, vowel)
+        if isinstance(vowel, dict):
+            self.load_dict(gender, vowel)
+        else:
+            self.load_preset(gender, vowel)
 
     # ---- Built-in presets ------------------------------------------------ #
 
-    def load_preset(self, gender = str, vowel = str):
+    def load_preset(self, gender: str, vowel: str):
         """Load a built-in male/female vowel preset."""
 
         if gender not in VALID_GENDERS:
@@ -75,5 +77,32 @@ class FormantController:
         self.vowel = vowel
 
         return self.formant_list, self.band_list
+
+    def load_dict(self, gender: str, data: dict):
+        """Load a controller saved in the settings JSON."""
+        vowel = data.get("name", data.get("vowel", "A"))
+        formant_list = data.get("formant_list", data.get("formants"))
+        band_list = data.get("band_list", data.get("bandwidths"))
+
+        if formant_list is None or band_list is None:
+            return self.load_preset(gender, vowel)
+        if vowel not in VALID_VOWELS:
+            raise ValueError(f"vowel must be one of {VALID_VOWELS}, got '{vowel}'")
+        if len(formant_list) != 3 or len(band_list) != 3:
+            raise ValueError("a formant controller needs three formants and bandwidths")
+
+        self.gender = gender
+        self.vowel = vowel
+        self.formant_list = [float(value) for value in formant_list]
+        self.band_list = [float(value) for value in band_list]
+        return self.formant_list, self.band_list
+
+    def to_dict(self):
+        """Return a JSON-serializable representation of this controller."""
+        return {
+            "name": self.vowel,
+            "formant_list": list(self.formant_list),
+            "band_list": list(self.band_list),
+        }
     
 

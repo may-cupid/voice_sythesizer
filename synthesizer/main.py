@@ -112,7 +112,7 @@ clock = pygame.time.Clock()
 FONT = pygame.font.SysFont("cambria", 50)
 SMALL_FONT = pygame.font.SysFont("cambria", 25)
 
-from ui_elements import Button, InfoPanel
+from mays_ui_elements import Button, InfoPanel
 
 VOWEL_BUTTON = Button(0,0,100,50, "Select Vowel")
 TRAIT_BUTTON = Button(60,0,100,50, "Trait")
