@@ -50,33 +50,34 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     formant_list = list(fc.formant_list)
     band_list = list(fc.band_list)
 
-    formant_shift = float(effect_values.get("formant_shift", 0.0))
-    if formant_shift != 0:
-        formant_list = [frequency * (1 + formant_shift) for frequency in formant_list]
 
-    F = np.array(formant_list, dtype=float)
-    B = np.array(band_list, dtype=float)
+    F = np.array(formant_list)
+    B = np.array(band_list)
 
     R = np.exp(-np.pi * B / fs)
     theta = 2 * np.pi * F / fs
     poles = R * np.exp(1j * theta)
 
     all_poles = np.concatenate([poles, np.conj(poles)])
-    A = np.real(np.poly(all_poles))
+    A = np.poly(all_poles) 
+    A = np.real(A) #ensure A is real
     B_coeff = np.array([1.0])
 
     if f0 <= 0:
         raise ValueError("f0 must be greater than zero.")
+    else:
+        f0 = f0
 
-    nsamps = fs
-    n = np.arange(nsamps)
     w0T = 2 * np.pi * f0 / fs
 
     nharm = int(np.floor((fs / 2) / f0))
-    sig = np.zeros(nsamps, dtype=float)
+    
+    nsamps = fs
+    n = np.arange(nsamps)
+    sig = np.zeros(nsamps)
 
     for harmonic in range(1, nharm + 1):
-        sig += (1 / harmonic) * np.cos(harmonic * w0T * n)
+        sig += np.cos(harmonic * w0T * n)
 
     sig = sig / np.max(np.abs(sig))
 
@@ -85,10 +86,6 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
         vibrato_rate = float(effect_values.get("vibrato_rate", 5.0))
         modulation = 1.0 + (vibrato_depth / max(f0, 1.0)) * np.sin(2 * np.pi * vibrato_rate * n / fs)
         sig = sig * modulation
-
-    noise_level = float(effect_values.get("noise_level", 0.0))
-    if noise_level > 0:
-        sig = sig + (np.random.default_rng(0).normal(0, noise_level, size=nsamps))
 
 
     speech = signal.lfilter(B_coeff, A, sig)

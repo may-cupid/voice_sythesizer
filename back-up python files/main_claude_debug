@@ -1,5 +1,6 @@
 import json
 import sys
+import traceback
 from pathlib import Path
 import time
 
@@ -20,7 +21,7 @@ SCREEN_HEIGHT = 600
 SETTINGS_FILE = Path(__file__).with_name("conf.json")
 
 
-
+#default settings for first opening
 DEFAULT_EFFECTS = {
     "vibrato_enabled": False,
     "vibrato_rate": 5.0,
@@ -43,12 +44,14 @@ def clamp(value, minimum, maximum):
 
 
 def load_settings():
+    #loads default settings into conf
     if not SETTINGS_FILE.exists():
         save_settings(DEFAULT_SETTINGS)
         return DEFAULT_SETTINGS.copy()
 
     try:
         with SETTINGS_FILE.open("r", encoding="utf-8") as settings_file:
+            #open previous settings
             raw_data = json.load(settings_file)
     except Exception:
         save_settings(DEFAULT_SETTINGS)
@@ -58,6 +61,7 @@ def load_settings():
     merged.update(raw_data)
 
     if not isinstance(raw_data.get("effects", {}), dict):
+        #loads preset effects if the json file is empty
         merged["effects"] = DEFAULT_EFFECTS.copy()
     else:
         merged["effects"] = DEFAULT_EFFECTS.copy()
@@ -111,16 +115,19 @@ class Config(object):
         return result
 
 
-"""conf = Config.load_json("synthesizer\conf.json")"""
+conf = Config.load_json("synthesizer/conf.json")
 
     
 class VoiceSynthGUI:
     def __init__(self):
-        pygame.mixer.pre_init(8192, -16, 1, 512)
+        # NOTE: pygame.mixer is intentionally NOT initialized here.
+        # All audio playback in this app goes through `sounddevice` (sd.play),
+        # not pygame.mixer. Initializing pygame.mixer as well makes SDL grab
+        # the system audio device, which on most systems then blocks/conflicts
+        # with sounddevice (PortAudio) trying to open the same device -- this
+        # was why Play produced no audible sound. pygame.init() below still
+        # initializes everything else the GUI needs (display, font, events).
         pygame.init()
-
-        if not pygame.mixer.get_init():
-            pygame.mixer.init(8192, -16, 1, 512)
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Voice Synthesizer")
@@ -131,6 +138,7 @@ class VoiceSynthGUI:
         self.settings = load_settings()
         self.current_sound = None
         self.player_window = None
+        self.volume = 1.0  # live playback volume, controlled by the Player window slider
 
         self.font = pygame.font.SysFont("cambria", 22)
         self.title_font = pygame.font.SysFont("cambria", 36)
@@ -428,27 +436,29 @@ class VoiceSynthGUI:
         )
         self.player_window = player_window
 
-
+        def generate_audio_array():
+            data = synthesizer.generate_speech(
+                gender=self.settings["gender"],
+                vowel=self.settings["vowel"],
+                f0=float(self.settings["f0"]),
+                effects=self.settings["effects"],
+            )
+            # Apply live player volume on top of the saved effects gain.
+            return data * self.volume
 
         def play_audio(*_):
             status_label.set_text("Generating audio...")
-
+            sd.stop()
             try:
-                speech = synthesizer.generate_speech(
-                    gender=self.settings["gender"],
-                    vowel=self.settings["vowel"],
-                    f0=float(self.settings["f0"]),
-                    effects=self.settings["effects"])
-            except Exception:
-                status_label.set_text("Generation failed")
+                audio_data = generate_audio_array()
+                sd.play(audio_data, synthesizer.SAMPLE_RATE, loop=True)
+            except Exception as exc:
+                # Print the real error to the console instead of hiding it --
+                # a bare "Generation failed" gives no way to diagnose issues.
+                traceback.print_exc()
+                status_label.set_text(f"Generation failed: {exc}")
                 return
 
-            sd.stop()
-            sd.play(
-                speech * float(volume_slider.current_value),
-                synthesizer.SAMPLE_RATE,
-                loop=True,
-            )
             self.current_sound = True
             status_label.set_text("Playing looped output")
 
@@ -459,7 +469,16 @@ class VoiceSynthGUI:
             status_label.set_text("Stopped")
 
         def update_volume(*_):
-            return
+            self.volume = float(volume_slider.current_value)
+            # If audio is currently playing, restart it so the new volume
+            # is actually audible without requiring another Play click.
+            if self.current_sound is not None:
+                try:
+                    sd.stop()
+                    audio_data = generate_audio_array()
+                    sd.play(audio_data, synthesizer.SAMPLE_RATE, loop=True)
+                except Exception:
+                    traceback.print_exc()
 
         def close_player(*_):
             stop_audio()
@@ -491,7 +510,7 @@ class VoiceSynthGUI:
 
         volume_slider = pygame_gui.elements.UIHorizontalSlider(
             relative_rect=Rect((20, 90), (400, 25)),
-            start_value=1.0,
+            start_value=self.volume,
             value_range=(0.0, 1.0),
             manager=self.manager,
             container=player_window,
