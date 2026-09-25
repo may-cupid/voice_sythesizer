@@ -184,6 +184,7 @@ def load_settings():
 
 
 def save_settings(settings):
+    """dumps (settings) into json"""
     with SETTINGS_FILE.open("w", encoding="utf-8") as settings_file:
         json.dump(settings, settings_file, indent=4)
 
@@ -282,8 +283,8 @@ class ParameterManager:
     def vowel(self):
         return self.settings["vowel"]
 
-    def set_vowel(self, vowel_letter):
-        self.controller.load_preset(self.settings["gender"], vowel_letter)
+    def set_vowel(self, vowel):
+        self.controller.load_preset(self.settings["gender"], vowel)
         self.settings["vowel"] = self.controller.to_dict()
 
     # ---- effects ------------------------------------------------------- #

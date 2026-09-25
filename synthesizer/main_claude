@@ -15,15 +15,13 @@ import pygame_gui
 from pygame import Rect
 
 import synthesizer
-from params import PRESETS, VALID_GENDERS,VALID_VOWELS, FormantController, ParameterManager
+import params
 
 sys.dont_write_bytecode = True
 
 
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
-
-
 
 
 class VoiceSynthGUI:
@@ -49,6 +47,7 @@ class VoiceSynthGUI:
 
         self.font = pygame.font.SysFont("cambria", 22)
         self.title_font = pygame.font.SysFont("cambria", 36)
+        self.settings = params.load_settings()
 
         self.build_main_menu()
 
@@ -76,7 +75,7 @@ class VoiceSynthGUI:
 
         self.status_label = pygame_gui.elements.UILabel(
             relative_rect=Rect((20, 130), (860, 30)),
-            text = params.ParameterManager.status_text(),
+            text = params.ParameterManager.status_text(self),
             manager=self.manager,
         )
 
@@ -162,14 +161,14 @@ class VoiceSynthGUI:
             text="Male",
             manager=self.manager,
             container=trait_window,
-            command=lambda: set_trait("male"),
+            command= set_trait("male"),
         )
         female_button = pygame_gui.elements.UIButton(
             relative_rect=Rect((190, 60), (150, 40)),
             text="Female",
             manager=self.manager,
             container=trait_window,
-            command=lambda: set_trait("female"),
+            command= set_trait("female"),
         )
 
         def set_trait(gender):
@@ -196,7 +195,7 @@ class VoiceSynthGUI:
                 text=vowel,
                 manager=self.manager,
                 container=vowel_window,
-                command=lambda chosen=vowel: self._apply_vowel(chosen, vowel_window),
+                command= self._apply_vowel(vowel, vowel_window)
             )
             buttons.append(btn)
 
@@ -209,8 +208,8 @@ class VoiceSynthGUI:
         )
 
     def _apply_vowel(self, vowel, window):
-        self.params.set_vowel(vowel)
-        self.params.save()
+        params.ParameterManager.set_vowel(self,vowel)
+        params.ParameterManager.save(self,vowel)
         self.update_status()
         window.kill()
 
@@ -412,7 +411,7 @@ class VoiceSynthGUI:
             container=player_window,
         )
 
-        volume_slider.on_value_changed = lambda *_: update_volume()
+        volume_slider.on_value_changed = update_volume()
 
     def close_window(self, window):
         if window is not None:
