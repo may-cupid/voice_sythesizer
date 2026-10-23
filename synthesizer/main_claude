@@ -217,7 +217,6 @@ class VoiceSynthGUI:
         self.update_status()
 
 
-
     def open_effects_window(self):
         self.close_window(self.player_window)
         effects_window = pygame_gui.elements.UIWindow(

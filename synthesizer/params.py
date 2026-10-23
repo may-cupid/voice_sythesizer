@@ -157,7 +157,7 @@ def load_settings():
     if not SETTINGS_FILE.exists():
         save_settings(DEFAULT_SETTINGS)
         return DEFAULT_SETTINGS.copy()
-
+    
     try:
         with SETTINGS_FILE.open("r", encoding="utf-8") as settings_file:
             raw_data = json.load(settings_file)
