@@ -80,8 +80,9 @@ class VoiceSynthGUI:
         )
 
     def update_status(self):
+        """sets text to current settings"""
         if hasattr(self, "status_label"):
-            self.status_label.set_text(self.params.status_text())
+            self.status_label.set_text(params.ParameterManager.status_text())
 
     def bottom_window_rect(self, width, height):
         return Rect(
@@ -110,15 +111,15 @@ class VoiceSynthGUI:
             manager=self.manager,
             container=pitch_window,
         )
-        pitch_input.set_text(str(self.params.f0))
+        pitch_input.set_text(str(params.ParameterManager.f0))
 
         def apply_pitch(*_):
             try:
-                self.params.set_pitch(pitch_input.get_text())
+                params.set_pitch(pitch_input.get_text())
                 self.update_status()
-                self.params.save()
+                params.save()
             except Exception:
-                pitch_input.set_text(str(self.params.f0))
+                pitch_input.set_text(str(params.ParameterManager.f0))
             finally:
                 pitch_window.kill()
 
@@ -172,8 +173,8 @@ class VoiceSynthGUI:
         )
 
         def set_trait(gender):
-            self.params.set_gender(gender)
-            self.params.save()
+            params.ParameterManager.set_gender(gender)
+            params.ParameterManager.save()
             self.update_status()
             trait_window.kill()
 
@@ -195,7 +196,7 @@ class VoiceSynthGUI:
                 text=vowel,
                 manager=self.manager,
                 container=vowel_window,
-                command= self._apply_vowel(vowel, vowel_window)
+                command=self.apply_vowel(vowel)
             )
             buttons.append(btn)
 
@@ -207,11 +208,15 @@ class VoiceSynthGUI:
             command=vowel_window.kill,
         )
 
-    def _apply_vowel(self, vowel, window):
-        params.ParameterManager.set_vowel(self,vowel)
-        params.ParameterManager.save(self,vowel)
+    def apply_vowel(self, vowel):
+        """saves the selected vowel into json file"""
+        print(vowel)
+        params.ParameterManager.save(self, data=vowel)
+        params.ParameterManager.set_vowel(vowel)
+
         self.update_status()
-        window.kill()
+
+
 
     def open_effects_window(self):
         self.close_window(self.player_window)
@@ -222,7 +227,7 @@ class VoiceSynthGUI:
         )
 
         sliders = []
-        effects = self.params.effects
+        effects = params.DEFAULT_SETTINGS["effects"]
 
         def build_slider(label, y, start, min_value, max_value, number_format=None):
             label_ui = pygame_gui.elements.UILabel(
@@ -243,19 +248,19 @@ class VoiceSynthGUI:
             return slider
 
         def toggle_vibrato(*_):
-            enabled = self.params.toggle_vibrato()
+            enabled = params.ParameterManager.toggle_vibrato()
             vibrato_toggle.set_text("Disable Vibrato" if enabled else "Enable Vibrato")
 
         def apply_effects(*_):
-            self.params.set_effects({
-                "vibrato_enabled": self.params.effects.get("vibrato_enabled", False),
+            params.ParameterManager.set_effects({
+                "vibrato_enabled": params.ParameterManager.effects.__get__("vibrato_enabled", False),
                 "gain": float(gain_slider.current_value),
                 "noise_level": float(noise_slider.current_value),
                 "formant_shift": float(formant_slider.current_value),
                 "vibrato_rate": float(rate_slider.current_value),
                 "vibrato_depth": float(depth_slider.current_value),
             })
-            self.params.save()
+            params.ParameterManager.save()
             self.update_status()
             effects_window.kill()
 
@@ -331,7 +336,7 @@ class VoiceSynthGUI:
         self.player_window = player_window
 
         def generate_audio_array():
-            data = synthesizer.generate_speech(**self.params.synth_kwargs())
+            data = synthesizer.generate_speech(**params.ParameterManager.synth_kwargs())
             # Apply live player volume on top of the saved effects gain.
             return data * self.volume
 
@@ -370,7 +375,7 @@ class VoiceSynthGUI:
 
         def close_player(*_):
             stop_audio()
-            self.params.save()
+            params.ParameterManager.save()
             player_window.kill()
             self.player_window = None
 
@@ -427,7 +432,7 @@ class VoiceSynthGUI:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.params.save()
+                    params.ParameterManager.save()
                     self.running = False
                     break
 

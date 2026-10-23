@@ -248,8 +248,8 @@ class ParameterManager:
 
     # ---- persistence ------------------------------------------------- #
 
-    def save(self):
-        save_settings(self.settings)
+    def save(self, data):
+        save_settings(data)
 
     # ---- pitch --------------------------------------------------------- #
 
@@ -274,7 +274,7 @@ class ParameterManager:
         if gender not in VALID_GENDERS:
             raise ValueError(f"gender must be one of {VALID_GENDERS}, got '{gender}'")
         self.settings["gender"] = gender
-        self.controller.load_preset(gender, self.controller.vowel)
+        FormantController.load_preset(gender, self.controller.vowel)
         self.settings["vowel"] = self.controller.to_dict()
 
     # ---- vowel ------------------------------------------------------- #
@@ -284,7 +284,7 @@ class ParameterManager:
         return self.settings["vowel"]
 
     def set_vowel(self, vowel):
-        self.controller.load_preset(self.settings["gender"], vowel)
+        FormantController.load_preset(self.settings["gender"], vowel)
         self.settings["vowel"] = self.controller.to_dict()
 
     # ---- effects ------------------------------------------------------- #

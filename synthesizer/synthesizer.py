@@ -4,7 +4,7 @@ sys.dont_write_bytecode = True
 import numpy as np
 from scipy import signal
 
-from parameters import FormantController
+from params import FormantController
 
 
 import sounddevice as sd
@@ -116,4 +116,3 @@ def synthesize_speech(gender: str = "female", vowel: str = "A", f0: float = 200.
     """Backward-compatible wrapper used by the new GUI and any old callers."""
     return generate_speech(gender=gender, vowel=vowel, f0=f0, effects=effects)
 
-generate_speech()
