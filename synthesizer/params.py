@@ -75,7 +75,7 @@ class FormantController:
         fc.load_custom_preset("myvoice_A")
     """
 
-    def __init__(self, gender: str = "male", vowel="A"):
+    def __init__(self, gender, vowel):
         self.gender = gender
         self.vowel = vowel
         self.formant_list = [0.0, 0.0, 0.0]
@@ -154,15 +154,14 @@ DEFAULT_SETTINGS = {
 
 def load_settings():
     """Read settings from disk, falling back to (and writing) defaults on any problem."""
-    if not SETTINGS_FILE.exists():
-        save_settings(DEFAULT_SETTINGS)
-        return DEFAULT_SETTINGS.copy()
     
     try:
         with SETTINGS_FILE.open("r", encoding="utf-8") as settings_file:
             raw_data = json.load(settings_file)
+
     except Exception:
-        save_settings(DEFAULT_SETTINGS)
+        with SETTINGS_FILE.open("w", encoding="utf-8"):
+            json.dump(DEFAULT_SETTINGS)
         return DEFAULT_SETTINGS.copy()
 
     merged = DEFAULT_SETTINGS.copy()
@@ -181,12 +180,50 @@ def load_settings():
     merged["vowel"] = controller.to_dict()
 
     return merged
+def merge_recursive(base, patch):
+    """Deep-merge `patch` into `base` (in place) and return base."""
+    for k, v in patch.items():
+        if isinstance(v, dict) and isinstance(base.get(k), dict):
+            merge_recursive(base[k], v)
+        else:
+            base[k] = v
+    return base
 
 
-def save_settings(settings):
-    """dumps (settings) into json"""
-    with SETTINGS_FILE.open("w", encoding="utf-8") as settings_file:
-        json.dump(settings, settings_file, indent=4)
+def replace_field(data, key, new_value):
+    """Set data[key] = new_value, deep-merging if both sides are dicts."""
+    return merge_recursive(data, {key: new_value})
+
+
+def load_settings():
+    try:
+        with SETTINGS_FILE.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _write(data):
+    # Write to a temp file, then swap it in, so a crash can't leave a half-written file.
+    tmp = SETTINGS_FILE.with_suffix(".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, SETTINGS_FILE)
+
+
+def save_settings(key, settings):
+    """Read the file, change one top-level key, write it back. Returns the full dict."""
+    data = load_settings()
+    replace_field(data, key, settings)
+    _write(data)
+    return data
+
+
+def save_patch(patch):
+    """Same as save_settings but for several keys in one write."""
+    data = merge_recursive(load_settings(), patch)
+    _write(data)
+    return data
 
 
 # --------------------------------------------------------------------------- #
@@ -244,12 +281,13 @@ class ParameterManager:
     def __init__(self):
         self.settings = load_settings()
         self.controller = FormantController(self.settings["gender"], self.settings["vowel"])
-        self.settings["vowel"] = self.controller.to_dict()
 
-    # ---- persistence ------------------------------------------------- #
+    def upload(self, path, value):
+        """upload(["f0"], 220.0) or upload(["effects", "vibrato_enabled"], True)"""
+        for k in reversed(path[1:]):
+            value = {k: value}          # wrap into a nested dict for deep paths
+        self.settings = save_settings(path[0], value)
 
-    def save(self, data):
-        save_settings(data)
 
     # ---- pitch --------------------------------------------------------- #
 
@@ -261,45 +299,43 @@ class ParameterManager:
         value = float(value)
         if value <= 0:
             raise ValueError("pitch (f0) must be positive")
-        self.settings["f0"] = value
+        self.upload(["f0"], value)
 
-    # ---- gender / trait -------------------------------------------------- #
-
+    # ---- gender ---- #
     @property
     def gender(self):
         return self.settings["gender"]
 
     def set_gender(self, gender):
-        """Switch gender and re-resolve the current vowel to that gender's preset."""
         if gender not in VALID_GENDERS:
             raise ValueError(f"gender must be one of {VALID_GENDERS}, got '{gender}'")
-        self.settings["gender"] = gender
         FormantController.load_preset(gender, self.controller.vowel)
-        self.settings["vowel"] = self.controller.to_dict()
+        self.settings = save_patch({
+            "gender": gender,
+            "vowel": self.controller.to_dict(),
+        })
 
-    # ---- vowel ------------------------------------------------------- #
-
+    # ---- vowel ---- #
     @property
     def vowel(self):
         return self.settings["vowel"]
 
     def set_vowel(self, vowel):
         FormantController.load_preset(self.settings["gender"], vowel)
-        self.settings["vowel"] = self.controller.to_dict()
+        self.upload(["vowel"], self.controller.to_dict())
 
-    # ---- effects ------------------------------------------------------- #
-
+    # ---- effects ---- #
     @property
     def effects(self):
         return self.settings["effects"]
 
     def set_effects(self, effects_dict):
-        self.settings["effects"] = dict(effects_dict)
+        self.upload(["effects"], dict(effects_dict))
 
     def toggle_vibrato(self):
-        current = self.settings["effects"].get("vibrato_enabled", False)
-        self.settings["effects"]["vibrato_enabled"] = not current
-        return self.settings["effects"]["vibrato_enabled"]
+        new = not self.settings["effects"].get("vibrato_enabled", False)
+        self.upload(["effects", "vibrato_enabled"], new)
+        return new
 
     # ---- misc ------------------------------------------------------- #
 
