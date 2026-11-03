@@ -18,6 +18,7 @@ all lives in main.py.
 
 import json
 import sys
+import os
 from pathlib import Path
 
 sys.dont_write_bytecode = True
@@ -98,13 +99,15 @@ class FormantController:
         self.formant_list = PRESETS[gender][vowel][0]
         self.band_list = PRESETS[gender][vowel][1]
 
+
         self.gender = gender
         self.vowel = vowel
 
-        return self.formant_list, self.band_list
+        return [self.formant_list, self.band_list]
 
     def load_dict(self, gender: str, data: dict):
         """Load a controller saved in the settings JSON."""
+
         vowel = data.get("name", data.get("vowel", "A"))
         formant_list = data.get("formant_list", data.get("formants"))
         band_list = data.get("band_list", data.get("bandwidths"))
@@ -120,6 +123,7 @@ class FormantController:
         self.vowel = vowel
         self.formant_list = [float(value) for value in formant_list]
         self.band_list = [float(value) for value in band_list]
+
         return self.formant_list, self.band_list
 
     def to_dict(self):
@@ -167,11 +171,14 @@ def load_settings():
     merged = DEFAULT_SETTINGS.copy()
     merged.update(raw_data)
 
+# loads effects
     if not isinstance(raw_data.get("effects", {}), dict):
         merged["effects"] = DEFAULT_EFFECTS.copy()
     else:
         merged["effects"] = DEFAULT_EFFECTS.copy()
         merged["effects"].update(raw_data["effects"])
+
+#loads vowel data
 
     vowel_data = merged.get("vowel")
     if not isinstance(vowel_data, dict) or "name" not in vowel_data:
@@ -179,7 +186,14 @@ def load_settings():
     controller = FormantController(merged["gender"], vowel_data)
     merged["vowel"] = controller.to_dict()
 
+# loads f0
+    f0_data = merged.get("f0")
+    if not isinstance(f0_data, dict):
+        f0_data = DEFAULT_SETTINGS["f0"]
+
+
     return merged
+
 def merge_recursive(base, patch):
     """Deep-merge `patch` into `base` (in place) and return base."""
     for k, v in patch.items():
@@ -196,15 +210,16 @@ def replace_field(data, key, new_value):
 
 
 def load_settings():
+    """loads settings from json file, returns dict"""
     try:
         with SETTINGS_FILE.open("r", encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+        return DEFAULT_SETTINGS
 
 
 def _write(data):
-    # Write to a temp file, then swap it in, so a crash can't leave a half-written file.
+    # (very sus)Write to a temp file, then swap it in, so a crash can't leave a half-written file .
     tmp = SETTINGS_FILE.with_suffix(".tmp")
     with tmp.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
@@ -225,13 +240,18 @@ def save_patch(patch):
     _write(data)
     return data
 
+def save_all(keys, settings):
+    """saves all"""
+    for key in keys:
+
+        save_settings(key, new_data)
 
 # --------------------------------------------------------------------------- #
 # Generic dict/JSON config loader (used for synthesizer/conf.json)
 # --------------------------------------------------------------------------- #
-
+""" looks useless
 class Dict(dict):
-    """dot.notation access to dictionary attributes"""
+
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
@@ -263,9 +283,7 @@ class Config(object):
     def load_json(path: str):
         with open(path, "r") as f:
             result = Config.__load__(json.loads(f.read()))
-        return result
-
-
+        return result """
 # --------------------------------------------------------------------------- #
 # ParameterManager: the facade the GUI actually talks to
 # --------------------------------------------------------------------------- #
@@ -280,7 +298,7 @@ class ParameterManager:
 
     def __init__(self):
         self.settings = load_settings()
-        self.controller = FormantController(self.settings["gender"], self.settings["vowel"])
+        """self.controller = FormantController(self.settings["gender"], self.settings["vowel"])"""
 
     def upload(self, path, value):
         """upload(["f0"], 220.0) or upload(["effects", "vibrato_enabled"], True)"""
@@ -293,9 +311,11 @@ class ParameterManager:
 
     @property
     def f0(self):
+        """Frequency in Hz, property of ParameterManager"""
         return self.settings["f0"]
 
     def set_pitch(self, value):
+        """uploads f0 to json"""
         value = float(value)
         if value <= 0:
             raise ValueError("pitch (f0) must be positive")
@@ -307,13 +327,14 @@ class ParameterManager:
         return self.settings["gender"]
 
     def set_gender(self, gender):
+        """uploads selected gender and changes preset (formant/bandwidth)"""
         if gender not in VALID_GENDERS:
             raise ValueError(f"gender must be one of {VALID_GENDERS}, got '{gender}'")
-        FormantController.load_preset(gender, self.controller.vowel)
-        self.settings = save_patch({
-            "gender": gender,
-            "vowel": self.controller.to_dict(),
-        })
+        
+        vowel_data = FormantController.load_preset(gender, self.settings["vowel"])
+        self.upload(["gender"], gender)
+        self.upload(["formant_list"], vowel_data[0])
+        self.upload(["band_list"], vowel_data[1])
 
     # ---- vowel ---- #
     @property
@@ -321,8 +342,16 @@ class ParameterManager:
         return self.settings["vowel"]
 
     def set_vowel(self, vowel):
-        FormantController.load_preset(self.settings["gender"], vowel)
-        self.upload(["vowel"], self.controller.to_dict())
+        """(sus) uploads preset vowel to file, turns to dict"""
+        print(self.settings)
+
+        vowel_data = FormantController.load_preset(self.settings["gender"], vowel)
+
+        print(self.settings)
+
+        self.upload(["name"], vowel)
+        self.upload(["formant_list"], vowel_data[0])
+        self.upload(["band_list"], vowel_data[1])
 
     # ---- effects ---- #
     @property
@@ -348,9 +377,16 @@ class ParameterManager:
 
     def synth_kwargs(self, f0=None):
         """Keyword args ready to hand straight to synthesizer.generate_speech()."""
-        return {
+        sythesizer_settings = {
+            
             "gender": self.settings["gender"],
             "vowel": self.settings["vowel"],
             "f0": float(self.settings["f0"] if f0 is None else f0),
             "effects": self.settings["effects"],
         }
+        return sythesizer_settings
+
+parameter_manager = ParameterManager()
+formant_controller = FormantController(parameter_manager.gender, parameter_manager.vowel)
+print(formant_controller.load_preset("male", "A" ))
+print(parameter_manager.settings)

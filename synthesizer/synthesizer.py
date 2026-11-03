@@ -4,7 +4,7 @@ sys.dont_write_bytecode = True
 import numpy as np
 from scipy import signal
 
-from params import FormantController
+from params import FormantController, ParameterManager, DEFAULT_EFFECTS, DEFAULT_SETTINGS
 
 
 import sounddevice as sd
@@ -14,16 +14,9 @@ import time
 
 SAMPLE_RATE = 8192
 
-DEFAULT_EFFECTS = {
-    "vibrato_enabled": False,
-    "vibrato_depth": 12.0,
-    "vibrato_rate": 5.0,
-    "gain": 1.0,
-    "noise_level": 0.0,
-    "formant_shift": 0.0,
-}
 
-def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effects=None, fs: int = SAMPLE_RATE):
+
+def generate_speech(fs: int = SAMPLE_RATE):
     """Generate a loopable synthesised vowel signal.
 
     Parameters
@@ -39,17 +32,17 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     fs : int
         Sampling rate used for synthesis.
     """
+    effects = dict(ParameterManager.effects)
 
     if effects is None:
         effects = {}
 
-    effect_values = DEFAULT_EFFECTS.copy()
-    effect_values.update(effects)
+    fc = FormantController()
+    formant_list, band_list = fc.load_preset(
+        gender=ParameterManager.gender, vowel=ParameterManager.vowel)
 
-    fc = FormantController(gender=gender, vowel=vowel)
-    formant_list = list(fc.formant_list)
-    band_list = list(fc.band_list)
-
+    
+    f0 = float(ParameterManager.f0)
 
     F = np.array(formant_list)
     B = np.array(band_list)
@@ -81,9 +74,9 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
 
     sig = sig / np.max(np.abs(sig))
 
-    if effect_values.get("vibrato_enabled", False):
-        vibrato_depth = float(effect_values.get("vibrato_depth", 12.0))
-        vibrato_rate = float(effect_values.get("vibrato_rate", 5.0))
+    if effects.get("vibrato_enabled", False):
+        vibrato_depth = float(effects.get("vibrato_depth", 12.0))
+        vibrato_rate = float(effects.get("vibrato_rate", 5.0))
         modulation = 1.0 + (vibrato_depth / max(f0, 1.0)) * np.sin(2 * np.pi * vibrato_rate * n / fs)
         sig = sig * modulation
 
@@ -97,7 +90,7 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     """
 
     speech = speech / np.max(np.abs(speech))
-    gain = float(effect_values.get("gain", 1.0))
+    gain = float(effects.get("gain", 1.0))
 
     speech = speech / np.max(np.abs(speech))
 

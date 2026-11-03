@@ -211,7 +211,6 @@ class VoiceSynthGUI:
     def apply_vowel(self, vowel):
         """saves the selected vowel into json file"""
         print(vowel)
-        params.ParameterManager.save(self, data=vowel)
         params.ParameterManager.set_vowel(vowel)
 
         self.update_status()
@@ -431,7 +430,7 @@ class VoiceSynthGUI:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    params.ParameterManager.save()
+                    params.save_patch()
                     self.running = False
                     break
 
