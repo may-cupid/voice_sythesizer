@@ -209,13 +209,13 @@ def replace_field(data, key, new_value):
     return merge_recursive(data, {key: new_value})
 
 
-def load_settings():
-    """loads settings from json file, returns dict"""
+"""def load_settings():
+    "loads settings from json file, returns dict"
     try:
         with SETTINGS_FILE.open("r", encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return DEFAULT_SETTINGS
+        return DEFAULT_SETTINGS"""
 
 
 def _write(data):
@@ -240,11 +240,6 @@ def save_patch(patch):
     _write(data)
     return data
 
-def save_all(keys, settings):
-    """saves all"""
-    for key in keys:
-
-        save_settings(key, new_data)
 
 # --------------------------------------------------------------------------- #
 # Generic dict/JSON config loader (used for synthesizer/conf.json)
@@ -388,5 +383,9 @@ class ParameterManager:
 
 parameter_manager = ParameterManager()
 formant_controller = FormantController(parameter_manager.gender, parameter_manager.vowel)
+
+
+
+
 print(formant_controller.load_preset("male", "A" ))
 print(parameter_manager.settings)

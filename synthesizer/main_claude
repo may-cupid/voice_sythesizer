@@ -15,7 +15,7 @@ import pygame_gui
 from pygame import Rect
 
 import synthesizer
-import params
+from params import parameter_manager, formant_controller
 
 sys.dont_write_bytecode = True
 
@@ -47,7 +47,7 @@ class VoiceSynthGUI:
 
         self.font = pygame.font.SysFont("cambria", 22)
         self.title_font = pygame.font.SysFont("cambria", 36)
-        self.settings = params.load_settings()
+        self.settings = parameter_manager.load_settings()
 
         self.build_main_menu()
 
@@ -75,14 +75,14 @@ class VoiceSynthGUI:
 
         self.status_label = pygame_gui.elements.UILabel(
             relative_rect=Rect((20, 130), (860, 30)),
-            text = params.ParameterManager.status_text(self),
+            text = parameter_manager.status_text(self),
             manager=self.manager,
         )
 
     def update_status(self):
         """sets text to current settings"""
         if hasattr(self, "status_label"):
-            self.status_label.set_text(params.ParameterManager.status_text())
+            self.status_label.set_text(parameter_manager.status_text())
 
     def bottom_window_rect(self, width, height):
         return Rect(
@@ -111,15 +111,15 @@ class VoiceSynthGUI:
             manager=self.manager,
             container=pitch_window,
         )
-        pitch_input.set_text(str(params.ParameterManager.f0))
+        pitch_input.set_text(str(parameter_manager.f0))
 
         def apply_pitch(*_):
             try:
-                params.set_pitch(pitch_input.get_text())
+                parameter_manager.set_pitch(pitch_input.get_text())
                 self.update_status()
-                params.save()
+                parameter_manager.upload("pitch",*_)
             except Exception:
-                pitch_input.set_text(str(params.ParameterManager.f0))
+                pitch_input.set_text(str(parameter_manager.f0))
             finally:
                 pitch_window.kill()
 
@@ -173,8 +173,8 @@ class VoiceSynthGUI:
         )
 
         def set_trait(gender):
-            params.ParameterManager.set_gender(gender)
-            params.ParameterManager.save()
+            parameter_manager.set_gender(gender)
+            parameter_manager.upload("gender", gender)
             self.update_status()
             trait_window.kill()
 
@@ -211,7 +211,7 @@ class VoiceSynthGUI:
     def apply_vowel(self, vowel):
         """saves the selected vowel into json file"""
         print(vowel)
-        params.ParameterManager.set_vowel(vowel)
+        parameter_manager.set_vowel(vowel)
 
         self.update_status()
 
@@ -246,19 +246,27 @@ class VoiceSynthGUI:
             return slider
 
         def toggle_vibrato(*_):
-            enabled = params.ParameterManager.toggle_vibrato()
+            enabled = parameter_manager.toggle_vibrato()
             vibrato_toggle.set_text("Disable Vibrato" if enabled else "Enable Vibrato")
 
         def apply_effects(*_):
-            params.ParameterManager.set_effects({
-                "vibrato_enabled": params.ParameterManager.effects.__get__("vibrato_enabled", False),
+            parameter_manager.set_effects({
+                "vibrato_enabled": parameter_manager.effects.__get__("vibrato_enabled", False),
                 "gain": float(gain_slider.current_value),
                 "noise_level": float(noise_slider.current_value),
                 "formant_shift": float(formant_slider.current_value),
                 "vibrato_rate": float(rate_slider.current_value),
                 "vibrato_depth": float(depth_slider.current_value),
             })
-            params.ParameterManager.save()
+            parameter_manager.upload( "effects",{
+                "vibrato_enabled": parameter_manager.effects.__get__("vibrato_enabled", False),
+                "gain": float(gain_slider.current_value),
+                "noise_level": float(noise_slider.current_value),
+                "formant_shift": float(formant_slider.current_value),
+                "vibrato_rate": float(rate_slider.current_value),
+                "vibrato_depth": float(depth_slider.current_value),
+            })
+
             self.update_status()
             effects_window.kill()
 
@@ -334,7 +342,7 @@ class VoiceSynthGUI:
         self.player_window = player_window
 
         def generate_audio_array():
-            data = synthesizer.generate_speech(**params.ParameterManager.synth_kwargs())
+            data = synthesizer.generate_speech(**parameter_manager.synth_kwargs())
             # Apply live player volume on top of the saved effects gain.
             return data * self.volume
 
@@ -373,7 +381,6 @@ class VoiceSynthGUI:
 
         def close_player(*_):
             stop_audio()
-            params.ParameterManager.save()
             player_window.kill()
             self.player_window = None
 
@@ -430,7 +437,7 @@ class VoiceSynthGUI:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    params.save_patch()
+                    parameter_manager.save_patch()
                     self.running = False
                     break
 
