@@ -16,7 +16,7 @@ SAMPLE_RATE = 8192
 
 
 
-def generate_speech(fs: int = SAMPLE_RATE):
+def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effects=None, fs: int = SAMPLE_RATE):
     """Generate a loopable synthesised vowel signal.
 
     Parameters

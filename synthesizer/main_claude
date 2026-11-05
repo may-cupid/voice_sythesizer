@@ -146,7 +146,6 @@ class VoiceSynthGUI:
             try:
                 self.params.set_pitch(pitch_input.get_text())
                 self.update_status()
-                self.params.upload("pitch",*_)
             except Exception:
                 pitch_input.set_text(str(self.params.f0))
             finally:
@@ -220,7 +219,6 @@ class VoiceSynthGUI:
         """sets gender and updates status"""
         self.params.set_gender(gender)
         self.update_status()
-        self.params.upload("gender", gender)
 
 
 # vowel
@@ -260,13 +258,10 @@ class VoiceSynthGUI:
 
     def apply_vowel(self, vowel):
         """saves the selected vowel into json file"""
-        try:
-            print(vowel)
-            self.params.set_vowel(vowel)
-            self.update_status()
-        except Exception:
-            self.params.set_vowel("A")
-            self.update_status()
+
+        self.params.set_vowel(vowel)
+        self.update_status()
+
 
 #effects
 

@@ -269,11 +269,20 @@ class ParameterManager:
     
     def upload(self, path, value):
         """upload(["f0"], 220.0) or upload(["effects", "vibrato_enabled"], True)"""
+
+        print(self.settings)
+
+        if isinstance(path, str):
+            path = [path]
+        if not path or path[0] not in DEFAULT_SETTINGS:
+            raise KeyError(f"unknown setting {path!r}")
         for k in reversed(path[1:]):
             value = {k: value}          # wrap into a nested dict for deep paths
         merge_recursive(self.settings, {path[0]: value})
+
         self.save()
 
+        print(self.settings)
 
 
     # ---- pitch --------------------------------------------------------- #
@@ -299,8 +308,8 @@ class ParameterManager:
         """uploads selected gender and reloads preset (formant/bandwidth)"""
         if gender not in VALID_GENDERS:
             raise ValueError(f"gender must be one of {VALID_GENDERS}, got '{gender}'")
-        self.controller.load_preset(gender, self.controller.vowel)  # validates
-        self.settings["gender"] = gender
+        self.controller.load_preset(gender, self.settings["vowel"])  # validates
+        
 
         self.upload(["vowel"], self.controller.to_dict())
 
@@ -311,12 +320,11 @@ class ParameterManager:
 
     def set_vowel(self, vowel):
         """(sus) uploads preset vowel to file, turns to dict"""
-        print(self.settings)
-
+        
+        #uploads to controller
         self.controller.load_preset(self.settings["gender"], vowel) 
 
-        print(self.settings)
-
+        #uploads to json
         self.upload(["vowel"], self.controller.to_dict())
 
     # ---- effects ---- #
@@ -345,10 +353,10 @@ class ParameterManager:
         """Keyword args ready to hand straight to synthesizer.generate_speech()."""
         sythesizer_settings = {
             
-            "gender": self.settings["gender"],
-            "vowel": self.settings["vowel"],
+            "gender": str(self.settings["gender"]),
+            "vowel": str(self.settings["vowel"]),
             "f0": float(self.settings["f0"] if f0 is None else f0),
-            "effects": self.settings["effects"],
+            "effects": dict(self.settings["effects"]),
         }
         return sythesizer_settings
 
@@ -358,5 +366,3 @@ formant_controller = FormantController(parameter_manager.gender, parameter_manag
 
 
 
-
-print(parameter_manager.settings)
