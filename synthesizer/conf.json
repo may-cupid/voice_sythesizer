@@ -1,25 +1,36 @@
 {
-    "f0": 800.0,
-    "gender": "female",
-    "vowel": {
-        "name": "A",
-        "formant_list": [
-            850,
-            1220,
-            2810
-        ],
-        "band_list": [
-            90,
-            110,
-            160
-        ]
-    },
-    "effects": {
-        "vibrato_enabled": false,
-        "vibrato_rate": 1.958762886597938,
-        "vibrato_depth": 0.0,
-        "gain": 1.3582474226804124,
-        "noise_level": 0.0,
-        "formant_shift": -0.5
+  "f0": 465.0,
+  "gender": "female",
+  "vowel": {
+    "name": "U",
+    "formant_list": [
+      370,
+      950,
+      2670
+    ],
+    "band_list": [
+      60,
+      100,
+      160
+    ]
+  },
+  "effects": {
+    "vibrato_enabled": null,
+    "vibrato_rate": 5.0,
+    "vibrato_depth": 12.0,
+    "gain": 0.7706185567010309,
+    "noise_level": 0.0,
+    "formant_shift": 0.0
+  },
+  "p": {
+    "i": {
+      "t": {
+        "c": {
+          "h": {
+            "mouse_button": 1
+          }
+        }
+      }
     }
+  }
 }
