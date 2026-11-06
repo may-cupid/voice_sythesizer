@@ -226,7 +226,9 @@ def replace_field(data, key, new_value):
 
 def _write(data):
     # (very sus)Write to a temp file, then swap it in, so a crash can't leave a half-written file .
+    
     tmp = SETTINGS_FILE.with_suffix(".tmp")
+    
     with tmp.open("w", encoding="utf-8") as f:
 
         json.dump(data, f, indent=2)
@@ -236,8 +238,13 @@ def _write(data):
 def save_settings(key, settings):
     """Read the file, change one top-level key, write it back. Returns the full dict."""
     data = load_settings()
-    replace_field(data, key, settings)
-    _write(data)
+    try:
+        replace_field(data, key, settings)
+        _write(data)
+    
+    except Exception:
+        pass
+    
     return data
 
 
@@ -271,8 +278,6 @@ class ParameterManager:
     
     def upload(self, path, value):
         """upload(["f0"], 220.0) or upload(["effects", "vibrato_enabled"], True)"""
-
-        print(self.settings)
 
         if isinstance(path, str):
             path = [path]
