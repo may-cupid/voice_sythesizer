@@ -16,7 +16,7 @@ SAMPLE_RATE = 8192
 
 
 
-def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effects=None, fs: int = SAMPLE_RATE):
+def generate_speech(synth_kwargs : dict):
     """Generate a loopable synthesised vowel signal.
 
     Parameters
@@ -32,17 +32,24 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     fs : int
         Sampling rate used for synthesis.
     """
-    effects = dict(parameter_manager.effects)
+
+    synthesizer_settings = synth_kwargs
+
+    effects = synthesizer_settings.get("effects")
+    print(effects)
 
     if effects is None:
-        effects = {}
+        effects = DEFAULT_EFFECTS
 
-    fc = formant_controller
-    formant_list, band_list = fc.load_preset(
-        gender = parameter_manager.gender, vowel= parameter_manager.vowel["name"])
+    fs = SAMPLE_RATE
+
+    formant_list = list(synthesizer_settings.get("vowel", {}).get("formant_list"))
+    band_list = list(synthesizer_settings.get("vowel",{}).get("band_list"))
+
+    print(formant_list,band_list)
 
     
-    f0 = float(parameter_manager.f0)
+    f0 = synthesizer_settings.get("f0")
 
     F = np.array(formant_list)
     B = np.array(band_list)
@@ -93,14 +100,14 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     gain = float(effects.get("gain", 1.0))
 
     speech = speech / np.max(np.abs(speech))
-
+    """
     sd.play(speech, fs)
     time.sleep(1)  # Wait for playback to finish
-
+    """
 
     speech_sound_file = np.clip(speech * gain, -1.0, 1.0).astype(np.float32)
 
-    return speech_sound_file, speech, fs
+    return speech_sound_file
 
 
 

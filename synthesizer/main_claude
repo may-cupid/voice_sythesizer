@@ -44,9 +44,9 @@ class VoiceSynthGUI:
         self.params = params.parameter_manager
 
         self.base_audio = None        # generated audio, before player volume
-        self.volume = 1.0             # live playback volume (Player window slider)
+        #self.volume = int(1)            # live playback volume (Player window slider)
         self.player_window = None
-        self.volume_slider = None
+        #self.volume_slider = None
         self.dialog = None            # the currently open non-player window
         self._player_status_label = None
         self.current_sound = False
@@ -309,7 +309,7 @@ class VoiceSynthGUI:
 
         def apply_effects(*_):
             self.params.set_effects({
-                "vibrato_enabled": self.params.effects.get("effects", {}).get("vibrato_enabled"),
+                "vibrato_enabled": self.params.settings.get("effects","vibrato_enabled", True),
                 "gain": float(gain_slider.current_value),
                 "noise_level": float(noise_slider.current_value),
                 "formant_shift": float(formant_slider.current_value),
@@ -400,7 +400,7 @@ class VoiceSynthGUI:
         def generate_audio_array():
             data = synthesizer.generate_speech(self.params.synth_kwargs())
             # Apply live player volume on top of the saved effects gain.
-            return data * self.volume
+            return data #* self.volume
 
         def play_audio(*_):
             status_label.set_text("Generating audio...")
@@ -425,7 +425,7 @@ class VoiceSynthGUI:
             status_label.set_text("Stopped")
 
 
-        def update_volume(*_):
+        """def update_volume(*_):
             self.volume = float(volume_slider.current_value)
             # If audio is currently playing, restart it so the new volume
             # is actually audible without requiring another Play click.
@@ -435,7 +435,7 @@ class VoiceSynthGUI:
                     audio_data = generate_audio_array()
                     sd.play(audio_data, synthesizer.SAMPLE_RATE, loop=True)
                 except Exception:
-                    traceback.print_exc()
+                    traceback.print_exc()"""
 
         def close_player(*_):
             stop_audio()
@@ -464,13 +464,13 @@ class VoiceSynthGUI:
             command=close_player,
         )
 
-        volume_slider = pygame_gui.elements.UIHorizontalSlider(
+        """ volume_slider = pygame_gui.elements.UIHorizontalSlider(
             relative_rect=Rect((20, 90), (400, 25)),
             start_value=self.volume,
             value_range=(0.0, 1.0),
             manager=self.manager,
             container=player_window,
-        )
+        )"""
 
         status_label = pygame_gui.elements.UILabel(
             relative_rect=Rect((20, 140), (520, 30)),
@@ -479,7 +479,7 @@ class VoiceSynthGUI:
             container=player_window,
         )
 
-        volume_slider.on_value_changed = update_volume()
+        """volume_slider.on_value_changed = update_volume()"""
 
     def close_window(self, window):
         if window is not None:

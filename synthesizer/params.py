@@ -194,6 +194,7 @@ def load_settings():
         controller = FormantController(settings["gender"], raw.get("vowel", settings["vowel"]))
     except (ValueError, TypeError, AttributeError):
         controller = FormantController(settings["gender"], "A")
+
     settings["vowel"] = controller.to_dict()
  
     return settings
@@ -354,7 +355,7 @@ class ParameterManager:
         sythesizer_settings = {
             
             "gender": str(self.settings["gender"]),
-            "vowel": str(self.settings["vowel"]),
+            "vowel": self.settings["vowel"],
             "f0": float(self.settings["f0"]),
             "effects": dict(self.settings["effects"]),
         }
