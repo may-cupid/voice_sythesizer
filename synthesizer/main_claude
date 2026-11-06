@@ -96,7 +96,7 @@ class VoiceSynthGUI:
         )
 
 
-    
+    """  
     def close_dialog(self):
         if self.dialog is not None:
             try:
@@ -106,8 +106,8 @@ class VoiceSynthGUI:
             self.dialog = None
 
     def new_dialog(self, width, height, title):
-        """Close whatever window is open and create a fresh dialog window."""
-        self.close_player_window()
+        ""Close whatever window is open and create a fresh dialog window.""
+        self.close(self.player_window)
         self.close_dialog()
         self.dialog = pygame_gui.elements.UIWindow(
             self.bottom_window_rect(width, height),
@@ -115,9 +115,10 @@ class VoiceSynthGUI:
             manager=self.manager,
         )
         return self.dialog
-
+            """
 # pitch
 
+    
     def open_pitch_window(self):
 
         self.close_window(self.player_window)
@@ -197,14 +198,14 @@ class VoiceSynthGUI:
             text="Male",
             manager=self.manager,
             container=trait_window,
-            command= self.set_trait("male"),
+            command= self.create_trait_command("male"),
         )
         female_button = pygame_gui.elements.UIButton(
             relative_rect=Rect((190, 60), (150, 40)),
             text="Female",
             manager=self.manager,
             container=trait_window,
-            command= self.set_trait("female"),
+            command= self.create_trait_command("female"),
         )
 
         close_button = pygame_gui.elements.UIButton(
@@ -219,6 +220,12 @@ class VoiceSynthGUI:
         """sets gender and updates status"""
         self.params.set_gender(gender)
         self.update_status()
+
+    def create_trait_command(self, gender):
+        """separates creation of buttons/ clicking on the trait button and execution of the command"""
+        def button_command():
+            self.set_trait(gender)
+        return button_command
 
 
 # vowel
@@ -244,7 +251,7 @@ class VoiceSynthGUI:
                 text=vowel,
                 manager=self.manager,
                 container=vowel_window,
-                command=self.create_command(vowel)
+                command=self.create_vowel_command(vowel)
             )
             buttons.append(btn)
 
@@ -256,7 +263,7 @@ class VoiceSynthGUI:
                 command=vowel_window.kill,
             )
 
-    def create_command(self, vowel):
+    def create_vowel_command(self, vowel):
         """extra definition so that 1. no button clicks are inserted and 2. so that apply_vowel is called once per button click (not when the buttons are cerated)"""
         def button_command():
             self.apply_vowel(vowel)
@@ -309,7 +316,7 @@ class VoiceSynthGUI:
 
         def apply_effects(*_):
             self.params.set_effects({
-                "vibrato_enabled": self.params.settings.get("effects","vibrato_enabled", True),
+                "vibrato_enabled": self.params.settings.get("effects").get("vibrato_enabled"),
                 "gain": float(gain_slider.current_value),
                 "noise_level": float(noise_slider.current_value),
                 "formant_shift": float(formant_slider.current_value),
@@ -485,6 +492,7 @@ class VoiceSynthGUI:
         if window is not None:
             try:
                 window.kill()
+                sd.stop()
             except Exception:
                 pass
             self.player_window = None
@@ -502,19 +510,19 @@ class VoiceSynthGUI:
                     self.running = False
                     break
 
-                if (
+                """if (
                     event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED
                     and self.volume_slider is not None
                     and event.ui_element == self.volume_slider
                 ):
-                    self.on_volume_changed(event.value)
+                    self.on_volume_changed(event.value)"""
  
                 if (
                     event.type == pygame_gui.UI_WINDOW_CLOSE
                     and self.player_window is not None
                     and event.ui_element == self.player_window
                 ):
-                    self.close_player_window()  # user hit the window's X button
+                    self.close_window(self.player_window)  # user hit the window's X button
 
 
 

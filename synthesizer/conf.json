@@ -1,25 +1,25 @@
 {
-  "f0": 300.0,
+  "f0": 600.0,
   "gender": "female",
   "vowel": {
-    "name": "E",
+    "name": "I",
     "formant_list": [
-      610,
-      2330,
-      2990
+      310,
+      2790,
+      3310
     ],
     "band_list": [
-      80,
+      60,
       120,
-      160
+      180
     ]
   },
   "effects": {
-    "vibrato_enabled": null,
-    "vibrato_rate": 5.0,
+    "vibrato_enabled": false,
+    "vibrato_rate": 7.268041237113402,
     "vibrato_depth": 12.0,
-    "gain": 0.7706185567010309,
-    "noise_level": 0.0,
-    "formant_shift": 0.0
+    "gain": 1.443298969072165,
+    "noise_level": 0.08762886597938144,
+    "formant_shift": -0.5
   }
 }

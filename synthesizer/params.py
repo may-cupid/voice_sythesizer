@@ -245,6 +245,7 @@ def save_patch(patch):
     """Same as save_settings but for several keys in one write."""
     data = merge_recursive(load_settings(), patch)
     _write(data)
+
     return data
 
 # --------------------------------------------------------------------------- #
@@ -309,9 +310,10 @@ class ParameterManager:
         """uploads selected gender and reloads preset (formant/bandwidth)"""
         if gender not in VALID_GENDERS:
             raise ValueError(f"gender must be one of {VALID_GENDERS}, got '{gender}'")
+        
         self.controller.load_preset(gender, self.controller.to_dict().get("name") )  # validates
         
-
+        self.upload(["gender"], gender)
         self.upload(["vowel"], self.controller.to_dict())
 
     # ---- vowel ---- #
@@ -346,8 +348,8 @@ class ParameterManager:
     def status_text(self):
         """returns text from settings for display"""
         return (
-            f"Gender: {self.settings['gender']} | Vowel: {self.settings['vowel']['name']} | "
-            f"Pitch: {self.settings['f0']} Hz | Volume: {self.settings['effects'].get('gain', 1.0):.2f}"
+            f"Gender: {self.gender} | Vowel: {self.settings['vowel']['name']} | "
+            f"Pitch: {self.f0} Hz | Volume: {self.settings['effects'].get('gain', 1.0):.2f}"
         )
 
     def synth_kwargs(self):
