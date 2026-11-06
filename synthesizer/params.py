@@ -308,7 +308,7 @@ class ParameterManager:
         """uploads selected gender and reloads preset (formant/bandwidth)"""
         if gender not in VALID_GENDERS:
             raise ValueError(f"gender must be one of {VALID_GENDERS}, got '{gender}'")
-        self.controller.load_preset(gender, self.settings["vowel"])  # validates
+        self.controller.load_preset(gender, self.controller.to_dict().get("name") )  # validates
         
 
         self.upload(["vowel"], self.controller.to_dict())
@@ -320,7 +320,7 @@ class ParameterManager:
 
     def set_vowel(self, vowel):
         """(sus) uploads preset vowel to file, turns to dict"""
-        
+
         #uploads to controller
         self.controller.load_preset(self.settings["gender"], vowel) 
 
@@ -349,13 +349,13 @@ class ParameterManager:
             f"Pitch: {self.settings['f0']} Hz | Volume: {self.settings['effects'].get('gain', 1.0):.2f}"
         )
 
-    def synth_kwargs(self, f0=None):
+    def synth_kwargs(self):
         """Keyword args ready to hand straight to synthesizer.generate_speech()."""
         sythesizer_settings = {
             
             "gender": str(self.settings["gender"]),
             "vowel": str(self.settings["vowel"]),
-            "f0": float(self.settings["f0"] if f0 is None else f0),
+            "f0": float(self.settings["f0"]),
             "effects": dict(self.settings["effects"]),
         }
         return sythesizer_settings

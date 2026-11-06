@@ -244,22 +244,28 @@ class VoiceSynthGUI:
                 text=vowel,
                 manager=self.manager,
                 container=vowel_window,
-                command= self.apply_vowel(vowel),
+                command=self.create_command(vowel)
             )
             buttons.append(btn)
 
-        close_button = pygame_gui.elements.UIButton(
-            relative_rect=Rect((180, 120), (140, 40)),
-            text="Close",
-            manager=self.manager,
-            container=vowel_window,
-            command=vowel_window.kill,
-        )
+            close_button = pygame_gui.elements.UIButton(
+                relative_rect=Rect((180, 120), (140, 40)),
+                text="Close",
+                manager=self.manager,
+                container=vowel_window,
+                command=vowel_window.kill,
+            )
 
-    def apply_vowel(self, vowel):
+    def create_command(self, vowel):
+        """extra definition so that 1. no button clicks are inserted and 2. so that apply_vowel is called once per button click (not when the buttons are cerated)"""
+        def button_command():
+            self.apply_vowel(vowel)
+        return button_command
+    
+    def apply_vowel(self, v):
         """saves the selected vowel into json file"""
 
-        self.params.set_vowel(vowel)
+        self.params.set_vowel(v)
         self.update_status()
 
 
@@ -392,7 +398,7 @@ class VoiceSynthGUI:
         self.player_window = player_window
 
         def generate_audio_array():
-            data = synthesizer.generate_speech(**self.params.synth_kwargs())
+            data = synthesizer.generate_speech(self.params.synth_kwargs())
             # Apply live player volume on top of the saved effects gain.
             return data * self.volume
 

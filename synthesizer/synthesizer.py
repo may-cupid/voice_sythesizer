@@ -4,7 +4,7 @@ sys.dont_write_bytecode = True
 import numpy as np
 from scipy import signal
 
-from params import FormantController, ParameterManager, DEFAULT_EFFECTS, DEFAULT_SETTINGS
+from params import formant_controller, parameter_manager, DEFAULT_EFFECTS, DEFAULT_SETTINGS
 
 
 import sounddevice as sd
@@ -32,17 +32,17 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     fs : int
         Sampling rate used for synthesis.
     """
-    effects = dict(ParameterManager.effects)
+    effects = dict(parameter_manager.effects)
 
     if effects is None:
         effects = {}
 
-    fc = FormantController()
+    fc = formant_controller
     formant_list, band_list = fc.load_preset(
-        gender=ParameterManager.gender, vowel=ParameterManager.vowel)
+        gender = parameter_manager.gender, vowel= parameter_manager.vowel["name"])
 
     
-    f0 = float(ParameterManager.f0)
+    f0 = float(parameter_manager.f0)
 
     F = np.array(formant_list)
     B = np.array(band_list)
@@ -103,9 +103,4 @@ def generate_speech(gender: str = "female", vowel="A", f0: float = 200.0, effect
     return speech_sound_file, speech, fs
 
 
-
-
-def synthesize_speech(gender: str = "female", vowel: str = "A", f0: float = 200.0, effects=None):
-    """Backward-compatible wrapper used by the new GUI and any old callers."""
-    return generate_speech(gender=gender, vowel=vowel, f0=f0, effects=effects)
 
