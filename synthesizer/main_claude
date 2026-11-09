@@ -43,11 +43,7 @@ class VoiceSynthGUI:
 
         self.params = params.parameter_manager
 
-        self.base_audio = None        # generated audio, before player volume
-        #self.volume = int(1)            # live playback volume (Player window slider)
         self.player_window = None
-        #self.volume_slider = None
-        self.dialog = None            # the currently open non-player window
         self._player_status_label = None
         self.current_sound = False
 
@@ -96,28 +92,7 @@ class VoiceSynthGUI:
         )
 
 
-    """  
-    def close_dialog(self):
-        if self.dialog is not None:
-            try:
-                self.dialog.kill()
-            except Exception:
-                pass
-            self.dialog = None
-
-    def new_dialog(self, width, height, title):
-        ""Close whatever window is open and create a fresh dialog window.""
-        self.close(self.player_window)
-        self.close_dialog()
-        self.dialog = pygame_gui.elements.UIWindow(
-            self.bottom_window_rect(width, height),
-            window_display_title=title,
-            manager=self.manager,
-        )
-        return self.dialog
-            """
 # pitch
-
     
     def open_pitch_window(self):
 
@@ -233,7 +208,6 @@ class VoiceSynthGUI:
     def open_vowel_window(self):
         self.close_window(self.player_window)
         
-
         vowel_window = pygame_gui.elements.UIWindow(
             self.bottom_window_rect(500, 220),
             window_display_title="Select Vowel",
@@ -277,7 +251,6 @@ class VoiceSynthGUI:
 
 
 #effects
-
 
     def open_effects_window(self):
 
@@ -364,7 +337,7 @@ class VoiceSynthGUI:
     def open_info_window(self):
         self.close_window(self.player_window)
         info_window = pygame_gui.elements.UIWindow(
-            self.bottom_window_rect(500, 300),
+            self.bottom_window_rect(500, 500),
             window_display_title="Information",
             manager=self.manager,
         )
@@ -374,17 +347,18 @@ class VoiceSynthGUI:
             "Use the menu buttons to pick a vowel, trait, pitch, and effects.<br>"
             "The player window will generate and loop the current voice output."
 
+
         )
 
         pygame_gui.elements.UITextBox(
             html_text=content,
-            relative_rect=Rect((20, 20), (460, 220)),
+            relative_rect=Rect((20, 20), (460, 350)),
             manager=self.manager,
             container=info_window,
         )
 
         close_button = pygame_gui.elements.UIButton(
-            relative_rect=Rect((170, 250), (120, 40)),
+            relative_rect=Rect((200, 400), (120, 40)),
             text="Close",
             manager=self.manager,
             container=info_window,
@@ -431,19 +405,6 @@ class VoiceSynthGUI:
                 self.current_sound = None
             status_label.set_text("Stopped")
 
-
-        """def update_volume(*_):
-            self.volume = float(volume_slider.current_value)
-            # If audio is currently playing, restart it so the new volume
-            # is actually audible without requiring another Play click.
-            if self.current_sound is not None:
-                try:
-                    sd.stop()
-                    audio_data = generate_audio_array()
-                    sd.play(audio_data, synthesizer.SAMPLE_RATE, loop=True)
-                except Exception:
-                    traceback.print_exc()"""
-
         def close_player(*_):
             stop_audio()
             player_window.kill()
@@ -470,14 +431,6 @@ class VoiceSynthGUI:
             container=player_window,
             command=close_player,
         )
-
-        """ volume_slider = pygame_gui.elements.UIHorizontalSlider(
-            relative_rect=Rect((20, 90), (400, 25)),
-            start_value=self.volume,
-            value_range=(0.0, 1.0),
-            manager=self.manager,
-            container=player_window,
-        )"""
 
         status_label = pygame_gui.elements.UILabel(
             relative_rect=Rect((20, 140), (520, 30)),
@@ -510,13 +463,6 @@ class VoiceSynthGUI:
                     self.running = False
                     break
 
-                """if (
-                    event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED
-                    and self.volume_slider is not None
-                    and event.ui_element == self.volume_slider
-                ):
-                    self.on_volume_changed(event.value)"""
- 
                 if (
                     event.type == pygame_gui.UI_WINDOW_CLOSE
                     and self.player_window is not None

@@ -4,7 +4,7 @@ sys.dont_write_bytecode = True
 import numpy as np
 from scipy import signal
 
-from params import formant_controller, parameter_manager, DEFAULT_EFFECTS, DEFAULT_SETTINGS
+from params import DEFAULT_EFFECTS, DEFAULT_SETTINGS
 
 
 import sounddevice as sd

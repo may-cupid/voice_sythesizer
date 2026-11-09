@@ -1,24 +1,24 @@
 {
-  "f0": 600.0,
+  "f0": 300.0,
   "gender": "male",
   "vowel": {
-    "name": "I",
+    "name": "E",
     "formant_list": [
-      270,
-      2290,
-      3010
+      530.0,
+      1840.0,
+      2480.0
     ],
     "band_list": [
-      50,
-      100,
-      160
+      70.0,
+      100.0,
+      140.0
     ]
   },
   "effects": {
-    "vibrato_enabled": false,
-    "vibrato_rate": 3.268041237113402,
-    "vibrato_depth": 7.0,
-    "gain": 0.5,
+    "vibrato_enabled": true,
+    "vibrato_rate": 0.0,
+    "vibrato_depth": 0.0,
+    "gain": 1.1030927835051547,
     "noise_level": 0.0,
     "formant_shift": -0.5
   }
