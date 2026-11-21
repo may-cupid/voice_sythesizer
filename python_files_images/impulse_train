@@ -1,0 +1,70 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.serif"] = ["Times New Roman"]
+
+
+frequenz = 100
+dauer = 0.1
+
+# Zeitpunkte der Impulse
+impulszeiten = np.arange(0, dauer, 1 / frequenz)
+
+# Amplituden
+amplituden = np.ones(len(impulszeiten))
+
+plt.stem(impulszeiten, amplituden)
+plt.xlabel("Time (s)")
+plt.ylabel("Amplitude")
+plt.title("An Impulse Train")
+plt.grid(True)
+plt.show()
+
+
+
+#frequency response impulse train
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+sample_rate = 8000
+nyquist = sample_rate / 2
+amplitude = 5
+period = 100          # Spacing between impulses (Hz)
+pulse_width = 15      # Half-width of each triangular spike
+
+# Frequency axis
+frequency = np.linspace(0, nyquist, 10000)
+
+# Start with zero magnitude
+magnitude = np.zeros_like(frequency)
+
+# Locations of the impulses
+impulse_positions = np.arange(0, nyquist + period, period)
+
+# Create triangular spikes
+for position in impulse_positions:
+    distance = np.abs(frequency - position)
+    
+    # Triangle: maximum at the impulse position, decreasing to zero
+    spike = amplitude * np.maximum(1 - distance / pulse_width, 0)
+    
+    magnitude = np.maximum(magnitude, spike)
+
+# Plot
+plt.figure(figsize=(10, 3))
+plt.plot(frequency, magnitude, color='salmon', linewidth=1.5)
+
+plt.title(f"Frequency response impulse train (sample rate: {sample_rate} samples/sec)")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+
+plt.xlim(-100, nyquist + 100)
+plt.ylim(-0.2, amplitude + 0.2)
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()

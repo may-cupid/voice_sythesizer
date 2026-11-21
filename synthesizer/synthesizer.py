@@ -36,7 +36,6 @@ def generate_speech(synth_kwargs : dict):
     synthesizer_settings = synth_kwargs
 
     effects = synthesizer_settings.get("effects")
-    print(effects)
 
     if effects is None:
         effects = DEFAULT_EFFECTS
@@ -46,22 +45,25 @@ def generate_speech(synth_kwargs : dict):
     formant_list = list(synthesizer_settings.get("vowel", {}).get("formant_list"))
     band_list = list(synthesizer_settings.get("vowel",{}).get("band_list"))
 
-    print(formant_list,band_list)
-
-    
-    f0 = synthesizer_settings.get("f0")
+    gain = effects.get("gain")
+   
 
     F = np.array(formant_list)
     B = np.array(band_list)
 
     R = np.exp(-np.pi * B / fs)
     theta = 2 * np.pi * F / fs
-    poles = R * np.exp(1j * theta)
+    poles = R * np.exp(1j * theta) #returns poles of filter (imaginary numbers)
 
-    all_poles = np.concatenate([poles, np.conj(poles)])
-    A = np.poly(all_poles) 
+    all_poles = np.concatenate([poles, np.conj(poles)]) #returns array of poles and their complex conjugates
+
+    A = np.poly(all_poles) #gets polynomial coefficient of the poles --> 
+    
     A = np.real(A) #ensure A is real
+
     B_coeff = np.array([1.0])
+
+    f0 = synthesizer_settings.get("f0")
 
     if f0 <= 0:
         raise ValueError("f0 must be greater than zero.")
@@ -70,7 +72,7 @@ def generate_speech(synth_kwargs : dict):
 
     w0T = 2 * np.pi * f0 / fs
 
-    nharm = int(np.floor((fs / 2) / f0))
+    nharm = int(np.floor((fs / 2) / f0)) #number of harmonics
     
     nsamps = fs
     n = np.arange(nsamps)
@@ -90,24 +92,13 @@ def generate_speech(synth_kwargs : dict):
 
     speech = signal.lfilter(B_coeff, A, sig)
 
-    """
-    peak = np.max(np.abs(speech))
-    if peak > 0:
-        speech = speech / peak
-    """
-
     speech = speech / np.max(np.abs(speech))
     gain = float(effects.get("gain", 1.0))
 
     speech = speech / np.max(np.abs(speech))
-    """
-    sd.play(speech, fs)
-    time.sleep(1)  # Wait for playback to finish
-    """
 
     speech_sound_file = np.clip(speech * gain, -1.0, 1.0).astype(np.float32)
 
     return speech_sound_file
-
 
 
