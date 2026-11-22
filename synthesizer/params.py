@@ -145,7 +145,6 @@ DEFAULT_EFFECTS = {
     "vibrato_depth": 12.0,
     "gain": 1.0,
     "noise_level": 0.0,
-    "formant_shift": 0.0,
 }
 
 DEFAULT_SETTINGS = {

@@ -337,6 +337,7 @@ class VoiceSynthGUI:
                 manager=self.manager,
                 container=effects_window,
             )
+
             slider = pygame_gui.elements.UIHorizontalSlider(
                 relative_rect=Rect((210, y), (260, 25)),
                 start_value=start,
@@ -359,7 +360,6 @@ class VoiceSynthGUI:
                 "vibrato_enabled": self.params.settings.get("effects").get("vibrato_enabled"),
                 "gain": float(gain_slider.current_value),
                 "noise_level": float(noise_slider.current_value),
-                "formant_shift": float(formant_slider.current_value),
                 "vibrato_rate": float(rate_slider.current_value),
                 "vibrato_depth": float(depth_slider.current_value),
             })
@@ -371,16 +371,15 @@ class VoiceSynthGUI:
             effects_window.kill()
 
         vibrato_toggle = pygame_gui.elements.UIButton(
-            relative_rect=Rect((20, 20), (160, 40)),
+            relative_rect=Rect((20, 130), (160, 40)),
             text="Enable Vibrato" if not effects.get("vibrato_enabled", False) else "Disable Vibrato",
             manager=self.manager,
             container=effects_window,
             command=toggle_vibrato,
         )
 
-        gain_slider = build_slider("Gain", 70, effects.get("gain", 1.0), 0.5, 2.0)
-        noise_slider = build_slider("Noise", 110, effects.get("noise_level", 0.0), 0.0, 1.0)
-        formant_slider = build_slider("Formant Shift", 150, effects.get("formant_shift", 0.0), -0.5, 0.5)
+        gain_slider = build_slider("Gain", 40, effects.get("gain", 1.0), 0.5, 2.0,)
+        noise_slider = build_slider("Noise", 80, effects.get("noise_level", 0.0), 0.0, 1.0)
         rate_slider = build_slider("Vibrato Rate", 190, effects.get("vibrato_rate", 5.0), 0.0, 10.0)
         depth_slider = build_slider("Vibrato Depth", 230, effects.get("vibrato_depth", 12.0), 0.0, 100.0)
 
