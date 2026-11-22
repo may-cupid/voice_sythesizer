@@ -106,4 +106,3 @@ def generate_speech(synth_kwargs : dict):
         speech_sound_file = np.add(speech_sound_file, (noise * np.random.normal(0,1)))
     return speech_sound_file
 
-

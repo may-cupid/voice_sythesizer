@@ -227,11 +227,13 @@ def _write(data):
     # (very sus)Write to a temp file, then swap it in, so a crash can't leave a half-written file .
     
     tmp = SETTINGS_FILE.with_suffix(".tmp")
-    
-    with tmp.open("w", encoding="utf-8") as f:
+    try:
+        with tmp.open("w", encoding="utf-8") as f:
 
-        json.dump(data, f, indent=2)
-    os.replace(tmp, SETTINGS_FILE)
+            json.dump(data, f, indent=2)
+        os.replace(tmp, SETTINGS_FILE)
+    except Exception:
+        pass
 
 
 def save_settings(key, settings):

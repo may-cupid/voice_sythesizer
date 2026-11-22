@@ -15,11 +15,11 @@
     ]
   },
   "effects": {
-    "vibrato_enabled": false,
-    "vibrato_rate": 4.793814432989691,
-    "vibrato_depth": 96.3917525773196,
+    "vibrato_enabled": true,
+    "vibrato_rate": 10.0,
+    "vibrato_depth": 100.0,
     "gain": 1.1030927835051547,
-    "noise_level": 0.041237113402061855,
+    "noise_level": 0.0,
     "formant_shift": 0.5
   }
 }

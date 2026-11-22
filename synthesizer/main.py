@@ -354,6 +354,14 @@ class VoiceSynthGUI:
         def toggle_vibrato():
             enabled = self.params.toggle_vibrato()
             vibrato_toggle.set_text("Disable Vibrato" if enabled else "Enable Vibrato")
+            
+            if enabled is True:
+                rate_slider.enable()
+                depth_slider.enable()
+
+            elif enabled is False:
+                rate_slider.disable()
+                depth_slider.disable()
 
         def apply_effects(*_):
             self.params.set_effects({
@@ -382,6 +390,10 @@ class VoiceSynthGUI:
         noise_slider = build_slider("Noise", 80, effects.get("noise_level", 0.0), 0.0, 1.0)
         rate_slider = build_slider("Vibrato Rate", 190, effects.get("vibrato_rate", 5.0), 0.0, 10.0)
         depth_slider = build_slider("Vibrato Depth", 230, effects.get("vibrato_depth", 12.0), 0.0, 100.0)
+
+        if not effects.get("vibrato_enabled", False):
+            rate_slider.disable()
+            depth_slider.disable()
 
         apply_button = pygame_gui.elements.UIButton(
             relative_rect=Rect((20, 300), (120, 40)),
