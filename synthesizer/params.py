@@ -289,8 +289,6 @@ class ParameterManager:
 
         self.save()
 
-        print(self.settings)
-
 
     # ---- pitch --------------------------------------------------------- #
 

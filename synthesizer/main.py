@@ -379,10 +379,10 @@ class VoiceSynthGUI:
         )
 
         gain_slider = build_slider("Gain", 70, effects.get("gain", 1.0), 0.5, 2.0)
-        noise_slider = build_slider("Noise", 110, effects.get("noise_level", 0.0), 0.0, 0.5)
+        noise_slider = build_slider("Noise", 110, effects.get("noise_level", 0.0), 0.0, 1.0)
         formant_slider = build_slider("Formant Shift", 150, effects.get("formant_shift", 0.0), -0.5, 0.5)
         rate_slider = build_slider("Vibrato Rate", 190, effects.get("vibrato_rate", 5.0), 0.0, 10.0)
-        depth_slider = build_slider("Vibrato Depth", 230, effects.get("vibrato_depth", 12.0), 0.0, 25.0)
+        depth_slider = build_slider("Vibrato Depth", 230, effects.get("vibrato_depth", 12.0), 0.0, 100.0)
 
         apply_button = pygame_gui.elements.UIButton(
             relative_rect=Rect((20, 300), (120, 40)),
@@ -412,14 +412,45 @@ class VoiceSynthGUI:
         content = (
             "<b>Voice Synthesizer</b><br><br>"
             "Use the menu buttons to pick a vowel, trait, pitch, and effects.<br>"
-            "The player window will generate and loop the current voice output.<br>"
+            "The player window will generate and loop the current voice output.<br><br>"
 
-            "<b>Voice Pitch</b><br>"
-            "Refers to the frequency of the voice. Changeing this will make the voice sound higher or deeper. <br>"
+            "<b>Vowels</b><br>"
+            "Vowels are speech sound produced with minimal to no constrictions in the vocal tract. <br>"
+            "This means that the airflow is mostly open, unlike with consonants, that have conscricted airflow, <br>"
+            "such as by closing the lips (m sound) or teeth (sh or t sounds)"
+            " Different languages will have different vowels and different ways of pronouncing them. In this program," \
+            " there will only be English vowels. This program only has" \
+            " 5 different vowel presets but for a comprehensive overview, check out: "
+            " https://dictionary.cambridge.org/help/phonetics.html"
+            "<br><br>"
+            "Vowels can be differentiated through their formants." \
+            "Formants are harmonics that are more amplified by the current vocal tract shape." \
+            "Vowels, but also accents are differentiated through formants. In this program, you can" \
+            "select which vowel to synthesize.<br><br>"
+            
+            "<b>Trait/Gender</b><br>"
+            "Masculine and feminine voices usually have different formants and bandwidths that help tell them apart."
+            " These can be selected in the \"Trait\" window. However, formants"
+            " and bandwidths can be different for different people and accents" \
+            ", as vocal tract length and head size play a large role in the timbre and specific tone of " \
+            "a speech signal.<br><br>"
 
             
+            "<b>Voice Pitch</b><br>"
+            "Refers to the frequency of the voice. Changing this will make the voice sound higher or deeper. <br><br>"
 
-
+            
+            "<b>Effects</b><br>"
+            "<i>Gain</i> <br>"
+            "This is the volume of the voice <br>" \
+            "<i>Noise</i> <br>"
+            "This adds some degree of randomness to the speech signal to make it sound more natural. Too much noise <br>" \
+            "completely destorys the speech signal.<br>" \
+            "<i>Vibrato</i> <br>" \
+            "To enable vibrato, make sure the button is displaying \"Disable Vibrato\". Vibrato refers to the pitch modulation<br> " \
+            "that naturally occurs in a speech sound. This helps the voice sound a bit more natural and is used to add intense emotion in singing.<br> " \
+            "\"Vibrato Rate\" refers to the amount of vibrato, so a high vibrato rate will give a shakier voice. \"Vibrato Depth\" refers to<br> " \
+            "how much the vibrato deviates from the original pitch."
 
         )
 

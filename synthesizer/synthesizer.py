@@ -46,7 +46,7 @@ def generate_speech(synth_kwargs : dict):
     band_list = list(synthesizer_settings.get("vowel",{}).get("band_list"))
 
     gain = effects.get("gain")
-   
+    noise = float(effects.get("noise_level"))
 
     F = np.array(formant_list)
     B = np.array(band_list)
@@ -97,8 +97,13 @@ def generate_speech(synth_kwargs : dict):
 
     speech = speech / np.max(np.abs(speech))
 
+    
     speech_sound_file = np.clip(speech * gain, -1.0, 1.0).astype(np.float32)
 
+    if noise == 0:
+        pass
+    else:
+        speech_sound_file = np.add(speech_sound_file, (noise * np.random.normal(0,1)))
     return speech_sound_file
 
 

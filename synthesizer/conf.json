@@ -1,5 +1,5 @@
 {
-  "f0": 350.0,
+  "f0": 200.0,
   "gender": "male",
   "vowel": {
     "name": "A",
@@ -15,11 +15,11 @@
     ]
   },
   "effects": {
-    "vibrato_enabled": true,
-    "vibrato_rate": 4.381443298969073,
-    "vibrato_depth": 0.0,
+    "vibrato_enabled": false,
+    "vibrato_rate": 4.793814432989691,
+    "vibrato_depth": 96.3917525773196,
     "gain": 1.1030927835051547,
-    "noise_level": 0.0,
-    "formant_shift": 0.10824742268041232
+    "noise_level": 0.041237113402061855,
+    "formant_shift": 0.5
   }
 }
