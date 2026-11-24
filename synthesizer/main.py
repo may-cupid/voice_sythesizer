@@ -246,7 +246,7 @@ class VoiceSynthGUI:
 
         custom_toggle = pygame_gui.elements.UIButton(
             relative_rect=Rect((20, 20), (160, 40)),
-            text="Enable Vibrato" if not effects.get("vibrato_enabled", False) else "Disable Vibrato",
+            text="Enable Tremolo" if not effects.get("tremolo_enabled", False) else "Disable Tremolo",
             manager=self.manager,
             container=vowel_window,
             command=toggle_custom,
@@ -351,9 +351,9 @@ class VoiceSynthGUI:
 
 
         
-        def toggle_vibrato():
-            enabled = self.params.toggle_vibrato()
-            vibrato_toggle.set_text("Disable Vibrato" if enabled else "Enable Vibrato")
+        def toggle_tremolo():
+            enabled = self.params.toggle_tremolo()
+            tremolo_toggle.set_text("Disable Tremolo" if enabled else "Enable Tremolo")
             
             if enabled is True:
                 rate_slider.enable()
@@ -365,11 +365,11 @@ class VoiceSynthGUI:
 
         def apply_effects(*_):
             self.params.set_effects({
-                "vibrato_enabled": self.params.settings.get("effects").get("vibrato_enabled"),
+                "tremolo_enabled": self.params.settings.get("effects").get("tremolo_enabled"),
                 "gain": float(gain_slider.current_value),
                 "noise_level": float(noise_slider.current_value),
-                "vibrato_rate": float(rate_slider.current_value),
-                "vibrato_depth": float(depth_slider.current_value),
+                "tremolo_rate": float(rate_slider.current_value),
+                "tremolo_depth": float(depth_slider.current_value),
             })
 
             self.update_status()
@@ -378,20 +378,20 @@ class VoiceSynthGUI:
         def close_effects(*_):
             effects_window.kill()
 
-        vibrato_toggle = pygame_gui.elements.UIButton(
+        tremolo_toggle = pygame_gui.elements.UIButton(
             relative_rect=Rect((20, 130), (160, 40)),
-            text="Enable Vibrato" if not effects.get("vibrato_enabled", False) else "Disable Vibrato",
+            text="Enable Tremolo" if not effects.get("tremolo_enabled", False) else "Disable Tremolo",
             manager=self.manager,
             container=effects_window,
-            command=toggle_vibrato,
+            command=toggle_tremolo,
         )
 
         gain_slider = build_slider("Gain", 40, effects.get("gain", 1.0), 0.5, 2.0,)
         noise_slider = build_slider("Noise", 80, effects.get("noise_level", 0.0), 0.0, 1.0)
-        rate_slider = build_slider("Vibrato Rate", 190, effects.get("vibrato_rate", 5.0), 0.0, 10.0)
-        depth_slider = build_slider("Vibrato Depth", 230, effects.get("vibrato_depth", 12.0), 0.0, 100.0)
+        rate_slider = build_slider("Tremolo Rate", 190, effects.get("tremolo_rate", 5.0), 0.0, 10.0)
+        depth_slider = build_slider("Tremolo Depth", 230, effects.get("tremolo_depth", 12.0), 0.0, 100.0)
 
-        if not effects.get("vibrato_enabled", False):
+        if not effects.get("tremolo_enabled", False):
             rate_slider.disable()
             depth_slider.disable()
 
@@ -457,11 +457,11 @@ class VoiceSynthGUI:
             "<i>Noise</i> <br>"
             "This adds some degree of randomness to the speech signal to make it sound more natural. Too much noise <br>" \
             "completely destorys the speech signal.<br>" \
-            "<i>Vibrato</i> <br>" \
-            "To enable vibrato, make sure the button is displaying \"Disable Vibrato\". Vibrato refers to the pitch modulation<br> " \
-            "that naturally occurs in a speech sound. This helps the voice sound a bit more natural and is used to add intense emotion in singing.<br> " \
-            "\"Vibrato Rate\" refers to the amount of vibrato, so a high vibrato rate will give a shakier voice. \"Vibrato Depth\" refers to<br> " \
-            "how much the vibrato deviates from the original pitch."
+            "<i>Tremolo</i> <br>" \
+            "To enable tremolo, make sure the button is displaying \"Disable Tremolo\". Tremolo refers to the amplitude modulation<br> " \
+            "that naturally occurs in a speech sound, also described as trembling. This helps the voice sound a bit more natural and is used to add intense emotion in singing.<br> " \
+            "\"Tremolo Rate\" refers to the amount of tremolo, so a high tremolo rate will give a shakier voice. \"Tremolo Depth\" refers to<br> " \
+            "how much the tremolo deviates from the original pitch."
 
         )
 
@@ -504,6 +504,9 @@ class VoiceSynthGUI:
             try:
                 audio_data = generate_audio_array()
                 sd.play(audio_data, synthesizer.SAMPLE_RATE, loop=True)
+
+                from sleglaive.utils import plot_waveform, plot_spectrum, plot_spectrogram
+                plot_waveform(audio_data, synthesizer.SAMPLE_RATE)
             except Exception as exc:
                 # Print the real error to the console instead of hiding it.
                 traceback.print_exc()

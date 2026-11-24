@@ -83,12 +83,11 @@ def generate_speech(synth_kwargs : dict):
 
     sig = sig / np.max(np.abs(sig))
 
-    if effects.get("vibrato_enabled", False):
-        vibrato_depth = float(effects.get("vibrato_depth", 12.0))
-        vibrato_rate = float(effects.get("vibrato_rate", 5.0))
-        modulation = 1.0 + (vibrato_depth / max(f0, 1.0)) * np.sin(2 * np.pi * vibrato_rate * n / fs)
+    if effects.get("tremolo_enabled", False):
+        tremolo_depth = float(effects.get("tremolo_depth", 12.0))
+        tremolo_rate = float(effects.get("tremolo_rate", 5.0))
+        modulation = 1.0 + (tremolo_depth / max(f0, 1.0)) * np.sin(2 * np.pi * tremolo_rate * n / fs)
         sig = sig * modulation
-
 
     speech = signal.lfilter(B_coeff, A, sig)
 

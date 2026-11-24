@@ -140,9 +140,9 @@ class FormantController:
 # --------------------------------------------------------------------------- #
 
 DEFAULT_EFFECTS = {
-    "vibrato_enabled": False,
-    "vibrato_rate": 5.0,
-    "vibrato_depth": 12.0,
+    "tremolo_enabled": False,
+    "tremolo_rate": 5.0,
+    "tremolo_depth": 12.0,
     "gain": 1.0,
     "noise_level": 0.0,
 }
@@ -278,7 +278,7 @@ class ParameterManager:
 
     
     def upload(self, path, value):
-        """upload(["f0"], 220.0) or upload(["effects", "vibrato_enabled"], True)"""
+        """upload(["f0"], 220.0) or upload(["effects", "tremolo_enabled"], True)"""
 
         if isinstance(path, str):
             path = [path]
@@ -342,9 +342,9 @@ class ParameterManager:
     def set_effects(self, effects_dict):
         self.upload(["effects"], dict(effects_dict))
 
-    def toggle_vibrato(self):
-        new = not self.settings["effects"].get("vibrato_enabled", False)
-        self.upload(["effects", "vibrato_enabled"], new)
+    def toggle_tremolo(self):
+        new = not self.settings["effects"].get("tremolo_enabled", False)
+        self.upload(["effects", "tremolo_enabled"], new)
         return new
 
     # ---- misc ------------------------------------------------------- #

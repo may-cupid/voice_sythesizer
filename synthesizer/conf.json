@@ -15,10 +15,10 @@
     ]
   },
   "effects": {
-    "vibrato_enabled": true,
-    "vibrato_rate": 10.0,
-    "vibrato_depth": 100.0,
-    "gain": 1.1030927835051547,
+    "tremolo_enabled": false,
+    "tremolo_rate": 10.0,
+    "tremolo_depth": 100.0,
+    "gain": 0.7706185567010309,
     "noise_level": 0.0,
     "formant_shift": 0.5
   }
