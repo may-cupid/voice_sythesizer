@@ -16,12 +16,13 @@ from pygame import Rect
 
 import synthesizer
 import params
+import plotter
 
 sys.dont_write_bytecode = True
 
 
-SCREEN_WIDTH = 900
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1200
+SCREEN_HEIGHT = 700
 
 
 class VoiceSynthGUI:
@@ -238,70 +239,6 @@ class VoiceSynthGUI:
             )
 
 
-    """
-        def toggle_custom():
-            custom_enabled = self.toggle_custom()
-            custom_toggle.set_text("Disable Custom Formants & Bandwidth" if custom_enabled else "Enabled Custom Formants & Bandwidth")
-            show_fields()
-
-        custom_toggle = pygame_gui.elements.UIButton(
-            relative_rect=Rect((20, 20), (160, 40)),
-            text="Enable Tremolo" if not effects.get("tremolo_enabled", False) else "Disable Tremolo",
-            manager=self.manager,
-            container=vowel_window,
-            command=toggle_custom,
-        )
-        
-        pitch_input = pygame_gui.elements.UITextEntryLine(
-                    relative_rect=Rect((20, 60), (220, 40)),
-                    manager=self.manager,
-                    container=vowel_window,
-                )
-        
-        pitch_input.set_text(str(self.params.f0))
-        
-        formants = ["F1", "F2", "F3"]
-        band_widths = ["B1", "B2", "B3"]
-        formant_fields = []
-        band_width_fields = []
-
-        formant_x_positions = [20, 120, 220]
-        bandwidth_x_positions = []
-
-
-        for index, vowel in enumerate(vowels):
-            btn = pygame_gui.elements.UIButton(
-                relative_rect=Rect((x_positions[index], 60), (80, 40)),
-                text=vowel,
-                manager=self.manager,
-                container=vowel_window,
-                command=self.create_vowel_command(vowel)
-            )
-            buttons.append(btn)
-        
-        def show_formant_fields():
-            for i in self.settings:
-                 = pygame_gui.elements.UITextEntryLine(
-                relative_rect=Rect((20, 60), (220, 40)),
-                manager=self.manager,
-                container=pitch_window,
-        )
-
-        
-        def show_bandwidth_fields():
-
-        def apply_custom(*_):
-            try:
-                self.params.set_pitch(pitch_input.get_text())
-                self.update_status()
-            except Exception:
-                pitch_input.set_text(str(self.params.f0))
-            finally:
-                vowel_window.kill()
-        
-    """
-
-
     def create_vowel_command(self, vowel):
         """extra definition so that 1. no button clicks are inserted and 2. so that apply_vowel is called once per button click (not when the buttons are cerated)"""
         def button_command():
@@ -487,7 +424,7 @@ class VoiceSynthGUI:
         self.close_window(self.player_window)
 
         player_window = pygame_gui.elements.UIWindow(
-            self.bottom_window_rect(600, 380),
+            self.bottom_window_rect(900, 600),
             window_display_title="Player",
             manager=self.manager,
         )
@@ -525,27 +462,10 @@ class VoiceSynthGUI:
             player_window.kill()
             self.player_window = None
 
-        pygame_gui.elements.UIButton(
-            relative_rect=Rect((20, 20), (120, 40)),
-            text="Play",
-            manager=self.manager,
-            container=player_window,
-            command=play_audio,
-        )
-        pygame_gui.elements.UIButton(
-            relative_rect=Rect((160, 20), (120, 40)),
-            text="Stop",
-            manager=self.manager,
-            container=player_window,
-            command=stop_audio,
-        )
-        pygame_gui.elements.UIButton(
-            relative_rect=Rect((300, 20), (120, 40)),
-            text="Close",
-            manager=self.manager,
-            container=player_window,
-            command=close_player,
-        )
+        graph_data = generate_audio_array()
+        plotter.build_player_window_contents(self.manager, self.player_window, graph_data, synthesizer.SAMPLE_RATE, play_audio, stop_audio, close_player)
+
+
 
         status_label = pygame_gui.elements.UILabel(
             relative_rect=Rect((20, 140), (520, 30)),
@@ -553,8 +473,6 @@ class VoiceSynthGUI:
             manager=self.manager,
             container=player_window,
         )
-
-        """volume_slider.on_value_changed = update_volume()"""
 
     def close_window(self, window):
         if window is not None:
