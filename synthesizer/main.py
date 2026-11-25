@@ -504,9 +504,6 @@ class VoiceSynthGUI:
             try:
                 audio_data = generate_audio_array()
                 sd.play(audio_data, synthesizer.SAMPLE_RATE, loop=True)
-
-                from sleglaive.utils import plot_waveform, plot_spectrum, plot_spectrogram
-                plot_waveform(audio_data, synthesizer.SAMPLE_RATE)
             except Exception as exc:
                 # Print the real error to the console instead of hiding it.
                 traceback.print_exc()
