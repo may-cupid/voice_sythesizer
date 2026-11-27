@@ -465,14 +465,12 @@ class VoiceSynthGUI:
         graph_data = generate_audio_array()
         plotter.build_player_window_contents(self.manager, self.player_window, graph_data, synthesizer.SAMPLE_RATE, play_audio, stop_audio, close_player)
 
-
-
         status_label = pygame_gui.elements.UILabel(
-            relative_rect=Rect((20, 140), (520, 30)),
+            relative_rect=Rect((20, 50), (500, 30)),
             text="Stopped",
             manager=self.manager,
             container=player_window,
-        )
+    )
 
     def close_window(self, window):
         if window is not None:

@@ -20,7 +20,8 @@ import pygame
 import pygame_gui
 from pygame import Rect
 
-WINDOW_SECONDS = 0.20  # time range shown for time domain + spectrogram
+
+WINDOW_SECONDS = 0.02  # time range shown for time domain + spectrogram
 DPI = 100
 
 
@@ -55,7 +56,7 @@ def plot_time_domain(samples, sample_rate, size):
 
     fig, ax = _new_figure(size)
     ax.plot(t, segment, linewidth=0.8)
-    ax.set_xlim(0, WINDOW_SECONDS)
+    ax.set_xlim(0.01, WINDOW_SECONDS)
     # y axis spans the full amplitude range of the whole sound
     peak = float(np.max(np.abs(samples))) or 1.0
     ax.set_ylim(-peak * 1.05, peak * 1.05)
@@ -77,7 +78,7 @@ def plot_spectrogram(samples, sample_rate, size):
     ax.specgram(
         segment, NFFT=nfft, Fs=sample_rate, noverlap=nfft * 3 // 4, cmap="magma"
     )
-    ax.set_xlim(0, WINDOW_SECONDS)
+    ax.set_xlim(0.01, WINDOW_SECONDS)
     ax.set_ylim(0, sample_rate / 2)  # full frequency range up to Nyquist
     ax.set_xlabel("Time [s]")
     ax.set_ylabel("Frequency [Hz]")
@@ -180,14 +181,9 @@ def build_player_window_contents(
     button(4, "Time domain", lambda: graph_panel.show("time"))
     button(5, "Spectrogram", lambda: graph_panel.show("spectrogram"))
     button(6, "Spectral envelope", lambda: graph_panel.show("envelope"))
-
     # --- status label at the bottom of the left column ---
-    status_label = pygame_gui.elements.UILabel(
-        relative_rect=Rect((col_x, ch - 20 - 30), (col_w, 30)),
-        text="Stopped",
-        manager=manager,
-        container=player_window,
-    )
+    
 
     graph_panel.show("time")  # default graph
-    return status_label, graph_panel
+
+    return graph_panel

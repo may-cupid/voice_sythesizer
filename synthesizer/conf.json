@@ -1,5 +1,5 @@
 {
-  "f0": 200.0,
+  "f0": 600.0,
   "gender": "female",
   "vowel": {
     "name": "I",
@@ -15,9 +15,9 @@
     ]
   },
   "effects": {
-    "tremolo_enabled": false,
-    "tremolo_rate": 10.0,
-    "tremolo_depth": 100.0,
+    "tremolo_enabled": true,
+    "tremolo_rate": 4.742268041237113,
+    "tremolo_depth": 55.154639175257735,
     "gain": 0.7706185567010309,
     "noise_level": 0.0,
     "formant_shift": 0.5
